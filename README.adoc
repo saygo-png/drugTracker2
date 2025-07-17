@@ -1,0 +1,27 @@
+= drugTracker2
+
+== About
+
+The goal of the program is to keep track of pills. +
+I made this for myself, as I have to take medicine everyday,
+but have a rotating sleep cycle.
+
+What does it actually do?
+
+- Writes down the date and name of a pill that is taken
+- Lists past entries using relative and absolute time
+- Stores data in a simple csv file, using the XDG Base Directory Specification
+
+== Building
+
+The main way of building the project is through `nix build`.
+
+`cabal build` can be used, but mileage in building
+may vary as the dependencies there are not locked.
+
+== Contributing
+
+`nix fmt` to format all files.
+
+`nix shell` to jump into a shell with `drug` available.
+The non flake `nix-shell` is also supported
