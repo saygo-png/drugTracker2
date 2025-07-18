@@ -14,8 +14,8 @@ import Data.Time.Format.ISO8601 (iso8601ParseM, iso8601Show)
 data FileState = FileNotExists | FileEmpty | FileHasContent
 
 data DrugLine = DrugLine
-  { drugData :: Maybe Text,
-    dateData :: UTCTime
+  { drugData :: Maybe Text
+  , dateData :: UTCTime
   }
   deriving (Eq, Show)
 

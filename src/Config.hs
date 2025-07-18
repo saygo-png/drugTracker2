@@ -12,6 +12,6 @@ dataDir = getXdgDirectory XdgData "drug2/data.csv"
 csvHeader :: Header
 csvHeader =
   Vector.fromList
-    [ "drug",
-      "date"
+    [ "drug"
+    , "date"
     ]
