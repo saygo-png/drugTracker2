@@ -12,16 +12,29 @@ import Data.Vector qualified as V
 import Text.Time.Pretty
 import Types
 
+loadDrugData :: IO (Either Text (Vector DrugLine))
+loadDrugData = do
+  fileResult <- try $ BL8.readFile =<< outputPath
+  return $ case fileResult of
+    Left (e :: IOError) -> Left $ T.pack (displayException e) <> "\nHave you ran \"drug take DRUG_NAME\"?"
+    Right fileData -> parseCSV fileData
+
+parseCSV :: BL8.ByteString -> Either Text (Vector DrugLine)
+parseCSV fileData =
+  case Cassava.decodeByName @DrugLine fileData of
+    Left e -> Left $ "Error reading database " <> T.pack e
+    Right (_, vec) -> Right vec
+
 listDrugs :: IO ()
 listDrugs = do
-  fileData <- BL8.readFile =<< outputPath
-  let decodedCsv = Cassava.decodeByName @DrugLine fileData
-  case decodedCsv of
-    Left _ -> putStrLn "Error reading database"
-    Right (_, vec) ->
-      if not (null vec)
-        then prettyPrint vec
-        else putStrLn "No entries to show!"
+  result <- loadDrugData
+  case result of
+    Left e -> putStrLn e
+    Right d ->
+      if null d
+        then
+          putStrLn "No entries to show!"
+        else prettyPrint d
 
 takeLast :: (IsSequence seq) => Index seq -> seq -> seq
 takeLast i l = reverse l & take i & reverse
