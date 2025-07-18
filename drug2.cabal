@@ -16,6 +16,7 @@ common common-options
     text,
     vector,
     optparse-applicative,
+    filepath,
     directory,
     time,
     unix,

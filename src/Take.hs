@@ -8,18 +8,21 @@ import Data.ByteString.Char8 qualified as BS8
 import Data.ByteString.Lazy.Char8 qualified as BL8
 import Data.Csv qualified as Cassava
 import Data.Function
-import System.Directory (doesFileExist)
+import System.Directory (createDirectoryIfMissing, doesFileExist)
+import System.FilePath
 import Text.Printf (printf)
 import Types
 
 takeDrug :: Text -> IO ()
 takeDrug drugName = do
-  output <- dataDir
+  output <- outputPath
   drug <- DrugLine (Just drugName) <$> getCurrentTime
   filestate <- getFileState output
   case filestate of
+    FileNotExists -> do
+      createDirectoryIfMissing True $ takeDirectory output
+      writeWithHeader drug output
     FileEmpty -> writeWithHeader drug output
-    FileNotExists -> writeWithHeader drug output
     FileHasContent -> appendWithoutHeader drug output
 
 getFileState :: FilePath -> IO FileState

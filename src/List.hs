@@ -14,7 +14,7 @@ import Types
 
 listDrugs :: IO ()
 listDrugs = do
-  fileData <- BL8.readFile =<< dataDir
+  fileData <- BL8.readFile =<< outputPath
   let decodedCsv = Cassava.decodeByName @DrugLine fileData
   case decodedCsv of
     Left _ -> putStrLn "Error reading database"
