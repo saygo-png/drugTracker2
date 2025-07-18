@@ -35,15 +35,16 @@ padRToLen maxLen t = t <> replicate (maxLen - length t) ' '
 
 prettyTable :: Table -> Text
 prettyTable t =
-  let cols = V.maximum $ length <$> t
+  let cols = length <$> t & V.maximum
 
-      columnWidths = V.generate cols $
-        \col -> V.maximum $ V.mapMaybe (\row -> length <$> (row V.!? col)) t
+      columnWidths = V.generate cols colWidth
+        where
+          colWidth col = V.mapMaybe (\row -> length <$> (row V.!? col)) t & V.maximum
 
-      formatRow row =
-        intercalate " | " $
-          V.imap (\col cell -> padRToLen (columnWidths V.! col) cell) row
-  in  intercalate "\n" $ formatRow <$> t
+      formatRow row = V.imap formatEntry row & intercalate " | "
+        where
+          formatEntry i = padRToLen (columnWidths V.! i)
+   in formatRow <$> t & intercalate "\n"
 
 prettyPrint :: Vector DrugLine -> IO ()
 prettyPrint vec = do
