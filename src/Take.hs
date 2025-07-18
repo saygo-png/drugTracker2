@@ -39,7 +39,7 @@ wroteInfo i = do
   let x = drugData i
   let date = dateData i & tshow & takeWhile (/= '.')
   case x of
-    Just name -> printf "Took %s on %s\n" name date
+    Just name -> printf "Took \"%s\" on %s\n" name date
     Nothing -> error "drugData returned Nothing when it shouldn't have"
 
 writeWithHeader :: DrugLine -> FilePath -> IO ()
