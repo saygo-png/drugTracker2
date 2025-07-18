@@ -1,3 +1,5 @@
+:warning-caption: :warning:
+
 = drugTracker2
 
 == About
@@ -11,6 +13,18 @@ What does it actually do?
 - Writes down the date and name of a pill that is taken
 - Lists past entries using relative and absolute time
 - Stores data in a simple csv file, using the XDG Base Directory Specification
+
+[WARNING]
+====
+
+This program is new and experimental. I'm also inexperienced as a developer.
+A bug in the time handling could exist, leading to wrong
+dates being displayed.
+
+The timestamps in this program should be used with caution, as a rough guideline.
+Some medicine can require precise timing to be safe. Relying fully on this program could be dangerous. Use common sense.
+
+====
 
 == Installing
 
