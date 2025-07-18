@@ -12,6 +12,25 @@ What does it actually do?
 - Lists past entries using relative and absolute time
 - Stores data in a simple csv file, using the XDG Base Directory Specification
 
+== Installing
+
+=== NixOS (flakes)
+
+Add an input like this to flake.nix
+```nix
+drugtracker2 = {
+  url = "github:saygo-png/drugTracker2";
+  inputs.nixpkgs.follows = "nixpkgs";
+};
+```
+
+Add this to your configuration.nix
+```nix
+environment.systemPackages = [
+  inputs.drugtracker2.packages.${pkgs.system}.drug
+];
+```
+
 == Building
 
 The main way of building the project is through `nix build`.
