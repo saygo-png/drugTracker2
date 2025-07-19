@@ -9,12 +9,14 @@ import Data.Csv qualified as Cassava
 import Data.Function ((&))
 import Data.Text qualified as T
 import Data.Vector qualified as V
-import Text.Time.Pretty
+import Path qualified as P
+import Text.Time.Pretty as PT
 import Types
 
 loadDrugData :: IO (Either Text (Vector DrugLine))
 loadDrugData = do
-  fileResult <- try $ BL8.readFile =<< outputPath
+  csvFile <- getCsvFile
+  fileResult <- try $ BL8.readFile $ P.fromAbsFile csvFile
   return $ case fileResult of
     Left (e :: IOError) -> Left $ T.pack (displayException e) <> "\nHave you ran \"drug take DRUG_NAME\"?"
     Right fileData -> parseCSV fileData

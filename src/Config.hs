@@ -1,15 +1,23 @@
-module Config (outputPath, csvHeader) where
+{-# LANGUAGE TemplateHaskell #-}
+
+module Config (getCsvFile, getDataDir, csvHeader) where
 
 import ClassyPrelude
-import Data.Csv
+import Data.Csv qualified as C
 import Data.Vector qualified as Vector
-import System.Directory (XdgDirectory (XdgData), getXdgDirectory)
+import Path qualified as P
+import Path.IO qualified as PI
 
--- Path relative to $XDG_DATA_HOME
-outputPath :: IO FilePath
-outputPath = getXdgDirectory XdgData "drug2/data.csv"
+getCsvFile :: IO (P.Path P.Abs P.File)
+getCsvFile = getFileInDataDir $(P.mkRelFile "data.csv")
 
-csvHeader :: Header
+getFileInDataDir :: P.Path P.Rel t -> IO (P.Path P.Abs t)
+getFileInDataDir file = flip (P.</>) file <$> getDataDir
+
+getDataDir :: IO (P.Path P.Abs P.Dir)
+getDataDir = PI.getXdgDir PI.XdgData $ Just $(P.mkRelDir "drug2")
+
+csvHeader :: C.Header
 csvHeader =
   Vector.fromList
     [ "drug"
