@@ -8,6 +8,8 @@ import Data.ByteString.Char8 qualified as BS8
 import Data.ByteString.Lazy.Char8 qualified as BL8
 import Data.Csv qualified as Cassava
 import Data.Function ((&))
+import Data.Time qualified as TI
+import Lib
 import Path qualified as P
 import Path.IO qualified as PI
 import Text.Printf (printf)
@@ -17,7 +19,7 @@ takeDrug :: Text -> IO ()
 takeDrug drugName = do
   output <- getCsvFile
   filestate <- getFileState output
-  drug <- DrugLine (Just drugName) <$> getCurrentTime
+  drug <- DrugLine (Just drugName) <$> TI.getCurrentTime
 
   let fOutput = P.fromAbsFile output
 
@@ -38,10 +40,9 @@ getFileState path = do
       pure $ if isEmpty then FileEmpty else FileHasContent
 
 wroteInfo :: DrugLine -> IO ()
-wroteInfo i = do
-  let x = drugData i
-  let date = dateData i & tshow & takeWhile (/= '.')
-  case x of
+wroteInfo dl = do
+  date <- dateData dl & toPrettyLocalTime
+  case drugData dl of
     Just name -> printf "Took \"%s\" on %s\n" name date
     Nothing -> error "drugData returned Nothing when it shouldn't have"
 

@@ -9,9 +9,27 @@ import Data.Csv qualified as Cassava
 import Data.Function ((&))
 import Data.Text qualified as T
 import Data.Vector qualified as V
+import Lib
 import Path qualified as P
 import Text.Time.Pretty as PT
 import Types
+
+type Row = Vector Text
+
+type TableLocal = Vector Row
+
+listDrugs :: IO ()
+listDrugs = do
+  result <- loadDrugData
+  case result of
+    Left e -> putStrLn e
+    Right d ->
+      if null d
+        then
+          putStrLn "No entries to show!"
+        else prettyPrint d
+
+-- Parsing
 
 loadDrugData :: IO (Either Text (Vector DrugLine))
 loadDrugData = do
@@ -27,28 +45,15 @@ parseCSV fileData =
     Left e -> Left $ "Error reading database " <> T.pack e
     Right (_, vec) -> Right vec
 
-listDrugs :: IO ()
-listDrugs = do
-  result <- loadDrugData
-  case result of
-    Left e -> putStrLn e
-    Right d ->
-      if null d
-        then
-          putStrLn "No entries to show!"
-        else prettyPrint d
+-- Formatting
 
 takeLast :: (IsSequence seq) => Index seq -> seq -> seq
 takeLast i l = reverse l & take i & reverse
 
-type Row = Vector Text
-
-type Table = Vector Row
-
 padRToLen :: Int -> Text -> Text
 padRToLen maxLen t = t <> replicate (maxLen - length t) ' '
 
-prettyTable :: Table -> Text
+prettyTable :: TableLocal -> Text
 prettyTable t =
   let cols = length <$> t & V.maximum
 
@@ -66,7 +71,9 @@ prettyPrint vec = do
   nl <- niceLines vec
   putStrLn . prettyTable $ takeLast 14 nl
 
-niceLines :: Vector DrugLine -> IO Table
+-- Data transformation
+
+niceLines :: Vector DrugLine -> IO TableLocal
 niceLines vec = do
   let nums = V.generate (length vec) (\x -> tshow $ x + 1)
   let names = fromMaybe "DRUG NAME MISSING" . drugData <$> vec
@@ -76,6 +83,6 @@ niceLines vec = do
 dateStamp :: DrugLine -> IO Text
 dateStamp dl = do
   let date = dateData dl
-  let absTime = T.dropEnd 3 $ takeWhile (/= '.') . tshow $ date
+  absLocalTime <- dateData dl & toPrettyLocalTime
   relTime <- T.pack <$> prettyTimeAutoFromNow date
-  return $ relTime <> ", " <> absTime
+  return $ relTime <> ", " <> absLocalTime
