@@ -61,9 +61,10 @@ prettyTable t =
         where
           colWidth col = V.mapMaybe (\row -> length <$> (row V.!? col)) t & V.maximum
 
-      formatRow row = V.imap formatEntry row & intercalate " | "
+      formatRow row = V.imap formatEntry row & customJoin
         where
           formatEntry i = padRToLen (columnWidths V.! i)
+          customJoin list = intercalate " | " (take 3 list) ++ " " ++ unwords (drop 3 list)
    in formatRow <$> t & intercalate "\n"
 
 prettyPrint :: Vector DrugLine -> IO ()
@@ -77,12 +78,18 @@ niceLines :: Vector DrugLine -> IO TableLocal
 niceLines vec = do
   let nums = V.generate (length vec) (\x -> tshow $ x + 1)
   let names = fromMaybe "DRUG NAME MISSING" . drugData <$> vec
-  dates <- traverse dateStamp vec
-  return $ zipWith3 (\num name date -> fromList [num, name, date]) nums names dates
+  absDates <- traverse dateStampAbs vec
+  relDates <- traverse dateStampRel vec
+  pure $
+    zipWith4
+      (\num name dateRel dateAbs -> fromList [num, name, dateRel, dateAbs])
+      nums
+      names
+      relDates
+      absDates
 
-dateStamp :: DrugLine -> IO Text
-dateStamp dl = do
-  let date = dateData dl
-  absLocalTime <- dateData dl & toPrettyLocalTime
-  relTime <- T.pack <$> prettyTimeAutoFromNow date
-  return $ relTime <> ", " <> absLocalTime
+dateStampRel :: DrugLine -> IO Text
+dateStampRel dl = do (<> ",") . T.pack <$> prettyTimeAutoFromNow (dateData dl)
+
+dateStampAbs :: DrugLine -> IO Text
+dateStampAbs dl = do dateData dl & toPrettyLocalTime
