@@ -8,6 +8,7 @@ import Data.ByteString.Lazy.Char8 qualified as BL8
 import Data.Csv qualified as Cassava
 import Data.Function ((&))
 import Data.Text qualified as T
+import Data.Text.Encoding qualified as TE
 import Data.Vector qualified as V
 import Lib
 import Path qualified as P
@@ -64,8 +65,19 @@ prettyTable t =
       formatRow row = V.imap formatEntry row & customJoin
         where
           formatEntry i = padRToLen (columnWidths V.! i)
-          customJoin list = intercalate " | " (take 3 list) ++ " " ++ unwords (drop 3 list)
-   in formatRow <$> t & intercalate "\n"
+          customJoin list = intercalate colText (take 3 list) ++ " " ++ unwords (drop 3 list)
+
+      header :: TableLocal
+      header =
+        fromList [a <> b, mkBreak maxRowLength]
+        where
+          a = fromList ["Nr"]
+          b = TE.decodeUtf8 <$> csvHeader
+          maxRowLength = fmap length (formatRow <$> t) & V.maximum
+   in intercalate "\n" (formatRow <$> (header <> t))
+
+mkBreak :: Int -> Row
+mkBreak i = fromList [T.replicate i rowText]
 
 prettyPrint :: Vector DrugLine -> IO ()
 prettyPrint vec = do

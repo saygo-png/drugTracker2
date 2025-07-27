@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Config (getCsvFile, getDataDir, csvHeader) where
+module Config (getCsvFile, getDataDir, csvHeader, colText, rowText) where
 
 import ClassyPrelude
 import Data.Csv qualified as C
@@ -17,9 +17,15 @@ getFileInDataDir file = flip (P.</>) file <$> getDataDir
 getDataDir :: IO (P.Path P.Abs P.Dir)
 getDataDir = PI.getXdgDir PI.XdgData $ Just $(P.mkRelDir "drug2")
 
+colText :: Text
+colText = " | "
+
+rowText :: Text
+rowText = "-"
+
 csvHeader :: C.Header
 csvHeader =
   Vector.fromList
-    [ "drug"
-    , "date"
+    [ "Name"
+    , "Date"
     ]
