@@ -10,9 +10,8 @@ import Path.IO qualified as PI
 
 getCsvFile :: IO (P.Path P.Abs P.File)
 getCsvFile = getFileInDataDir $(P.mkRelFile "data.csv")
-
-getFileInDataDir :: P.Path P.Rel t -> IO (P.Path P.Abs t)
-getFileInDataDir file = flip (P.</>) file <$> getDataDir
+  where
+    getFileInDataDir file = flip (P.</>) file <$> getDataDir
 
 getDataDir :: IO (P.Path P.Abs P.Dir)
 getDataDir = PI.getXdgDir PI.XdgData $ Just $(P.mkRelDir "drug2")
