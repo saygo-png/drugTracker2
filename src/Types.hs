@@ -1,8 +1,13 @@
+{-# LANGUAGE GHC2021 #-}
+
 module Types (
   FileState (FileNotExists, FileEmpty, FileHasContent),
   DrugLine (DrugLine),
   drugData,
   dateData,
+  LinesArg (LinesInt, LinesAll),
+  Command (CmdList, CmdTake),
+  Types.Options (Options, optCommand),
 ) where
 
 import ClassyPrelude
@@ -10,6 +15,27 @@ import Data.ByteString.Char8 qualified as BS8
 import Data.Csv
 import Data.Function ((&))
 import Data.Time.Format.ISO8601 (iso8601ParseM, iso8601Show)
+import Text.ParserCombinators.ReadPrec qualified as R
+import Text.Read (readPrec)
+import Text.Read.Lex (Lexeme (..), lex)
+
+data LinesArg = LinesInt Int | LinesAll
+  deriving (Eq, Show)
+
+instance Read LinesArg where
+  readPrec =
+    (LinesInt <$> readPrec) R.<++ do
+      lexeme <- R.lift lex
+      case lexeme of
+        Ident "all" -> return LinesAll
+        Ident _ -> R.pfail -- Any other string fails
+        _ -> R.pfail
+
+data Command = CmdList LinesArg | CmdTake Text
+
+newtype Options = Options
+  { optCommand :: Command
+  }
 
 data FileState = FileNotExists | FileEmpty | FileHasContent
 

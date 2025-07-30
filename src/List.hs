@@ -19,8 +19,8 @@ type Row = Vector Text
 
 type TableLocal = Vector Row
 
-listDrugs :: IO ()
-listDrugs = do
+listDrugs :: LinesArg -> IO ()
+listDrugs lineCount = do
   result <- loadDrugData
   case result of
     Left e -> putStrLn e
@@ -28,7 +28,7 @@ listDrugs = do
       if null d
         then
           putStrLn "No entries to show!"
-        else prettyPrint d
+        else prettyPrint lineCount d
 
 -- Parsing
 
@@ -79,10 +79,14 @@ prettyTable t =
 mkBreak :: Int -> Row
 mkBreak i = fromList [T.replicate i rowText]
 
-prettyPrint :: Vector DrugLine -> IO ()
-prettyPrint vec = do
+prettyPrint :: LinesArg -> Vector DrugLine -> IO ()
+prettyPrint lineCount vec = do
   nl <- niceLines vec
-  putStrLn . prettyTable $ takeLast 14 nl
+  putStrLn . prettyTable $ takeOrAll lineCount nl
+  where
+    takeOrAll la nl = case la of
+      LinesAll -> nl
+      LinesInt n -> takeLast n nl
 
 -- Data transformation
 
