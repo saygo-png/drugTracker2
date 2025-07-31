@@ -22,14 +22,21 @@ parseTake = CmdTake <$> argument str (metavar "DRUG_NAME" <> help "Name of the d
 parseList :: Parser Command
 parseList =
   CmdList
-    <$> option
-      auto
-      ( long "lines"
-          <> short 'n'
-          <> metavar "NUM or \"all\""
-          <> help "How many lines from the end to show"
-          <> value (LinesInt 14)
-      )
+    <$> ( ListArgs
+            <$> option
+              auto
+              ( long "lines"
+                  <> short 'n'
+                  <> metavar "NUM or \"all\""
+                  <> help "How many lines from the end to show"
+                  <> value (LinesInt 14)
+              )
+            <*> switch
+              ( long "detailed"
+                  <> short 'd'
+                  <> help "EXPERIMENTAL: Whether to display time with day and hour level of detail"
+              )
+        )
 
 parseOptions :: Parser Options
 parseOptions = Options <$> parseCommand
@@ -39,4 +46,4 @@ main = do
   options <- execParser parserInfo
   case optCommand options of
     CmdTake drugName -> takeDrug drugName
-    CmdList lineCount -> listDrugs lineCount
+    CmdList listArgs -> listDrugs listArgs

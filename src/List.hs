@@ -13,14 +13,15 @@ import Data.Vector qualified as V
 import Lib
 import Path qualified as P
 import Text.Time.Pretty as PT
+import Time
 import Types
 
 type Row = Vector Text
 
 type TableLocal = Vector Row
 
-listDrugs :: LinesArg -> IO ()
-listDrugs lineCount = do
+listDrugs :: ListArgs -> IO ()
+listDrugs args = do
   result <- loadDrugData
   case result of
     Left e -> putStrLn e
@@ -28,7 +29,7 @@ listDrugs lineCount = do
       if null d
         then
           putStrLn "No entries to show!"
-        else prettyPrint lineCount d
+        else prettyPrint args d
 
 -- Parsing
 
@@ -79,10 +80,10 @@ prettyTable t =
 mkBreak :: Int -> Row
 mkBreak i = fromList [T.replicate i rowText]
 
-prettyPrint :: LinesArg -> Vector DrugLine -> IO ()
-prettyPrint lineCount vec = do
-  nl <- niceLines vec
-  putStrLn . prettyTable $ takeOrAll lineCount nl
+prettyPrint :: ListArgs -> Vector DrugLine -> IO ()
+prettyPrint args vec = do
+  nl <- niceLines (getDetailed args) vec
+  putStrLn . prettyTable $ takeOrAll (getLines args) nl
   where
     takeOrAll la nl = case la of
       LinesAll -> nl
@@ -90,12 +91,12 @@ prettyPrint lineCount vec = do
 
 -- Data transformation
 
-niceLines :: Vector DrugLine -> IO TableLocal
-niceLines vec = do
+niceLines :: Bool -> Vector DrugLine -> IO TableLocal
+niceLines detailed vec = do
   let nums = V.generate (length vec) (\x -> tshow $ x + 1)
   let names = fromMaybe "DRUG NAME MISSING" . drugData <$> vec
   absDates <- traverse dateStampAbs vec
-  relDates <- traverse dateStampRel vec
+  relDates <- traverse (dateStampRel detailed) vec
   pure $
     zipWith4
       (\num name dateRel dateAbs -> fromList [num, name, dateRel, dateAbs])
@@ -104,8 +105,12 @@ niceLines vec = do
       relDates
       absDates
 
-dateStampRel :: DrugLine -> IO Text
-dateStampRel dl = do (<> ",") . T.pack <$> prettyTimeAutoFromNow (dateData dl)
+dateStampRel :: Bool -> DrugLine -> IO Text
+dateStampRel detailed dl
+  | detailed = do (<> ",") . T.pack <$> dayhourTimeFormat oldDate
+  | otherwise = do (<> ",") . T.pack <$> prettyTimeAutoFromNow oldDate
+  where
+    oldDate = dateData dl
 
 dateStampAbs :: DrugLine -> IO Text
 dateStampAbs dl = do dateData dl & toPrettyLocalTime

@@ -1,5 +1,3 @@
-{-# LANGUAGE GHC2021 #-}
-
 module Types (
   FileState (FileNotExists, FileEmpty, FileHasContent),
   DrugLine (DrugLine),
@@ -7,6 +5,7 @@ module Types (
   dateData,
   LinesArg (LinesInt, LinesAll),
   Command (CmdList, CmdTake),
+  ListArgs (ListArgs, getLines, getDetailed),
   Types.Options (Options, optCommand),
 ) where
 
@@ -31,13 +30,22 @@ instance Read LinesArg where
         Ident _ -> R.pfail -- Any other string fails
         _ -> R.pfail
 
-data Command = CmdList LinesArg | CmdTake Text
+data ListArgs = ListArgs
+  { getLines :: LinesArg
+  , getDetailed :: Bool
+  }
+
+data Command = CmdList ListArgs | CmdTake Text
 
 newtype Options = Options
   { optCommand :: Command
   }
 
+-- IO
+
 data FileState = FileNotExists | FileEmpty | FileHasContent
+
+-- CSV
 
 data DrugLine = DrugLine
   { drugData :: Maybe Text
