@@ -1,12 +1,13 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Config (getCsvFile, getDataDir, csvHeader, colText, rowText) where
+module Config (getCsvFile, remindPeriod, getDataDir, csvHeader, colText, rowText) where
 
 import ClassyPrelude
 import Data.Csv qualified as C
 import Data.Vector qualified as Vector
 import Path qualified as P
 import Path.IO qualified as PI
+import Data.Fixed (Pico)
 
 getCsvFile :: IO (P.Path P.Abs P.File)
 getCsvFile = getFileInDataDir $(P.mkRelFile "data.csv")
@@ -18,6 +19,12 @@ getDataDir = PI.getXdgDir PI.XdgData $ Just $(P.mkRelDir "drug2")
 
 colText :: Text
 colText = " | "
+
+remindPeriod :: Pico
+remindPeriod = day
+  where
+      day = 86400
+
 
 rowText :: Text
 rowText = "-"

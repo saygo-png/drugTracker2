@@ -3,6 +3,7 @@ module Main where
 import ClassyPrelude
 import List
 import Options.Applicative
+import Remind
 import Take
 import Types
 
@@ -14,10 +15,14 @@ parseCommand =
   subparser
     ( command "take" (info parseTake (progDesc "Take drug"))
         <> command "list" (info (helper <*> parseList) (progDesc "List previously taken drugs"))
+        <> command "remind" (info (helper <*> parseRemind) (progDesc "Check last taken time, remind if enough time elapsed since"))
     )
 
 parseTake :: Parser Command
 parseTake = CmdTake <$> argument str (metavar "DRUG_NAME" <> help "Name of the drug to take")
+
+parseRemind :: Parser Command
+parseRemind = pure CmdRemind
 
 parseList :: Parser Command
 parseList =
@@ -47,3 +52,4 @@ main = do
   case optCommand options of
     CmdTake drugName -> takeDrug drugName
     CmdList listArgs -> listDrugs listArgs
+    CmdRemind -> remind

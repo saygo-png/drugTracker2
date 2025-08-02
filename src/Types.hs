@@ -1,10 +1,11 @@
+{-# OPTIONS_GHC -Wno-orphans #-}
 module Types (
   FileState (FileNotExists, FileEmpty, FileHasContent),
   DrugLine (DrugLine),
   drugData,
   dateData,
   LinesArg (LinesInt, LinesAll),
-  Command (CmdList, CmdTake),
+  Command (CmdList, CmdTake, CmdRemind),
   ListArgs (ListArgs, getLines, getDetailed),
   Types.Options (Options, optCommand),
 ) where
@@ -35,7 +36,7 @@ data ListArgs = ListArgs
   , getDetailed :: Bool
   }
 
-data Command = CmdList ListArgs | CmdTake Text
+data Command = CmdList ListArgs | CmdTake Text | CmdRemind
 
 newtype Options = Options
   { optCommand :: Command
