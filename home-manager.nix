@@ -3,19 +3,28 @@
   lib,
   config,
   ...
-}: {
+}: let
+  cfg = config.programs.drug;
+  drug = pkgs.callPackage ./package.nix {};
+in {
   options = {
     programs.drugtracker2.enable = lib.mkEnableOption "drugtracker2";
+
+    programs.drugtracker2.systemdIntegration =
+      lib.mkEnableOption "drugtracker2"
+      // {
+        default = true;
+      };
+
+    package = lib.mkPackageOption {inherit drug;} "drug" {nullable = true;};
   };
 
-  config = let
-    drug = pkgs.callPackage ./package.nix {};
-  in
-    lib.mkIf config.programs.drugtracker2.enable
+  config =
+    lib.mkIf cfg.enable
     {
-      environment.systemPackages = [drug];
+      home.packages = lib.mkIf (cfg.package != null) [cfg.package];
 
-      systemd.user.services.drug-reminder = {
+      systemd.user.services.drug-reminder = lib.mkIf cfg.systemdIntegration {
         description = "Drug Reminder Service";
         serviceConfig = {
           Type = "oneshot";
@@ -28,7 +37,7 @@
         };
       };
 
-      systemd.user.timers.drug-reminder = {
+      systemd.user.timers.drug-reminder = lib.mkIf cfg.systemdIntegration {
         description = "Run Drug Reminder Every Hour";
         wantedBy = ["timers.target"];
         timerConfig = {

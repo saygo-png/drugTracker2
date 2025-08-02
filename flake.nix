@@ -17,8 +17,8 @@
     eachSystem = f: nixpkgs.lib.genAttrs (import systems) (system: f pkgsFor.${system});
     treefmtEval = eachSystem (pkgs: inputs.treefmt-nix.lib.evalModule pkgs ./treefmt.nix);
   in {
-    nixosModules.default = self.nixosModules.drugtracker2;
-    nixosModules.drugtracker2 = import ./nixos.nix;
+    homeManagerModules.default = self.homeManagerModules.drugtracker2;
+    homeManagerModules.drugtracker2 = import ./home-manager.nix;
 
     formatter = eachSystem (pkgs: treefmtEval.${pkgs.system}.config.build.wrapper);
     packages = eachSystem (pkgs: rec {
