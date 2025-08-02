@@ -11,7 +11,7 @@
   config = let
     drug = pkgs.callPackage ./package.nix {};
   in
-    lib.mkIf config.drugtracker2.enable
+    lib.mkIf config.programs.drugtracker2.enable
     {
       environment.systemPackages = [drug];
 
