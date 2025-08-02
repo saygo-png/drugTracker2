@@ -4,7 +4,7 @@
   config,
   ...
 }: let
-  cfg = config.programs.drug;
+  cfg = config.programs.drugtracker2;
   drug = pkgs.callPackage ./package.nix {};
 in {
   options = {
