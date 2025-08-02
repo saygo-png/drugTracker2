@@ -8,15 +8,17 @@
   drug = pkgs.callPackage ./package.nix {};
 in {
   options = {
-    programs.drugtracker2.enable = lib.mkEnableOption "drugtracker2";
+    programs.drugtracker2 = {
+      enable = lib.mkEnableOption "drugtracker2";
 
-    programs.drugtracker2.systemdIntegration =
-      lib.mkEnableOption "drugtracker2"
-      // {
-        default = true;
-      };
+      systemdIntegration =
+        lib.mkEnableOption "drugtracker2"
+        // {
+          default = true;
+        };
 
-    package = lib.mkPackageOption {inherit drug;} "drug" {nullable = true;};
+      package = lib.mkPackageOption {inherit drug;} "drug" {nullable = true;};
+    };
   };
 
   config =
