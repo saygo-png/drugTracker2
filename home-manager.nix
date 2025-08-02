@@ -38,7 +38,7 @@ in {
     {
       home.packages = lib.mkIf (cfg.package != null) [cfg.package];
 
-      systemd.user.services.drugtracker2 = lib.mkIf cfg.systemdIntegration {
+      systemd.user.services.drugtracker2 = lib.mkIf cfg.systemdIntegration.enable {
         Unit.Description = "Drugtracker2 Service";
         Service = {
           Type = "oneshot";
@@ -52,7 +52,7 @@ in {
         };
       };
 
-      systemd.user.timers.drugtracker2 = lib.mkIf cfg.systemdIntegration {
+      systemd.user.timers.drugtracker2 = lib.mkIf cfg.systemdIntegration.enable {
         Unit.Description = "Run drug remind every hour";
         Install.WantedBy = ["timers.target"];
         Timer = {
