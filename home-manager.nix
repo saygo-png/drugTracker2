@@ -56,7 +56,7 @@ in {
         Unit.Description = "Run drug remind every hour";
         Install.WantedBy = ["timers.target"];
         Timer = {
-          OnCalendar = cfg.period;
+          OnCalendar = cfg.systemdIntegration.period;
           Persistent = true;
           RandomizedDelaySec = 60;
         };
