@@ -23,7 +23,7 @@
             drugBin = "${drug}/bin/drug";
             bash = "${pkgs.bash}/bin/bash";
             notify-send = "${pkgs.libnotify}/bin/notify-send";
-          in "${bash} -c '${drugBin} remind || ${notify-send} \"Drug Reminder\" \"Time to take your drugs!\"'";
+          in "${bash} -c '${drugBin} remind && ${notify-send} \"Drug Reminder\" \"Time to take your drugs!\"'";
           Environment = "DISPLAY=:0";
         };
       };
