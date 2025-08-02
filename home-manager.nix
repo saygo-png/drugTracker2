@@ -11,11 +11,23 @@ in {
     programs.drugtracker2 = {
       enable = lib.mkEnableOption "drugtracker2";
 
-      systemdIntegration =
-        lib.mkEnableOption "drugtracker2"
-        // {
-          default = true;
+      systemdIntegration = {
+        enable =
+          lib.mkEnableOption "drugtracker2"
+          // {
+            default = true;
+          };
+
+        period = lib.mkOption {
+          type = lib.types.str;
+          default = "hourly";
+          description = ''
+            Systemd timer period to create for scheduled {command}`drug remind`.
+
+            The format is described in {manpage}`systemd.time(7)`.
+          '';
         };
+      };
 
       package = lib.mkPackageOption {inherit drug;} "drug" {nullable = true;};
     };
@@ -34,16 +46,17 @@ in {
             drugBin = "${drug}/bin/drug";
             bash = "${pkgs.bash}/bin/bash";
             notify-send = "${pkgs.libnotify}/bin/notify-send";
-          in "${bash} -c '${drugBin} remind && ${notify-send} \"Drug Reminder\" \"Time to take your drugs!\"'";
+          in "${bash} -c '${drugBin} remind && ${notify-send} \"Drug Reminder\" \"Time to take your drugs!\"'; exit 0";
+          # TODO: improve error handling to show errors.
           Environment = "DISPLAY=:0";
         };
       };
 
       systemd.user.timers.drugtracker2 = lib.mkIf cfg.systemdIntegration {
-        Unit.Description = "Run drugtracker2 remind every hour";
+        Unit.Description = "Run drug remind every hour";
         Install.WantedBy = ["timers.target"];
         Timer = {
-          OnCalendar = "hourly";
+          OnCalendar = cfg.period;
           Persistent = true;
           RandomizedDelaySec = 60;
         };
