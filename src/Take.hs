@@ -3,52 +3,59 @@ module Take (
 ) where
 
 import ClassyPrelude
-import Config
-import Data.ByteString.Char8 qualified as BS8
+import ConfigAndTypes
+import Create qualified as C
 import Data.ByteString.Lazy.Char8 qualified as BL8
 import Data.Csv qualified as Cassava
-import Data.Function ((&))
+import Data.Text.Encoding qualified as T
+import Data.Text.Lazy qualified as T
+import Data.Text.Lazy.Encoding qualified as TL
 import Data.Time qualified as TI
 import Lib
 import Path qualified as P
 import Path.IO qualified as PI
+import System.Exit (exitFailure)
+import System.Process.Typed qualified as S
 import Text.Printf (printf)
-import Types
 
-takeDrug :: Text -> IO ()
-takeDrug drugName = do
-  output <- getCsvFile
-  filestate <- getFileState output
-  drug <- DrugLine (Just drugName) <$> TI.getCurrentTime
+takeDrug :: IO ()
+takeDrug = do
+  drug <- liftA2 DrugLine getDrugDef TI.getCurrentTime
 
+  output <- getCsvEntries
   let fOutput = P.fromAbsFile output
 
-  case filestate of
+  getFileState output >>= \case
     FileNotExists -> do
       PI.createDirIfMissing True =<< getDataDir
       writeWithHeader drug fOutput
     FileEmpty -> writeWithHeader drug fOutput
     FileHasContent -> appendWithoutHeader drug fOutput
 
-getFileState :: P.Path P.Abs P.File -> IO FileState
-getFileState path = do
-  exists <- PI.doesFileExist path
-  if not exists
-    then pure FileNotExists
-    else do
-      isEmpty <- P.fromAbsFile path & BS8.readFile <&> BS8.null
-      pure $ if isEmpty then FileEmpty else FileHasContent
+getDrugDef :: IO Text
+getDrugDef = do
+  defs <- loadDrugDefinitions
+  result <- runFuzzyFinder fuzzyFinder . intercalate "\n" . sort $ fmap getName defs
+  maybe (putStrLn "Invalid input" >> exitFailure) pure result
+  where
+    runFuzzyFinder :: String -> Text -> IO (Maybe Text)
+    runFuzzyFinder finder input = do
+      (exitCode, output, _) <- S.readProcess . pipeIn input $ S.proc finder []
+
+      case exitCode of
+        S.ExitSuccess -> decode output
+        _ -> pure Nothing
+      where
+        pipeIn = S.setStdin . S.byteStringInput . BL8.fromStrict . T.encodeUtf8
+        decode = pure . Just . T.toStrict . T.strip . TL.decodeUtf8
 
 wroteInfo :: DrugLine -> IO ()
-wroteInfo dl = do
-  date <- dateData dl & toPrettyLocalTime
-  case drugData dl of
-    Just name -> printf "Took \"%s\" on %s\n" name date
-    Nothing -> error "drugData returned Nothing when it shouldn't have"
+wroteInfo DrugLine{..} =
+  printf "Took \"%s\" on %s\n" getEntryName =<< toPrettyLocalTime getDate
 
 writeWithHeader :: DrugLine -> FilePath -> IO ()
 writeWithHeader drug output = do
-  let dataForWrite = Cassava.encodeByName csvHeader [drug]
+  let dataForWrite = Cassava.encodeByName (entriesToHeader csvEntriesHT) [drug]
   BL8.writeFile output dataForWrite
   wroteInfo drug
 

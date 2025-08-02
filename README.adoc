@@ -28,6 +28,37 @@ Some medicine can require precise timing to be safe. Relying fully on this progr
 
 == Installing
 
+Drugtracker2 is provided as a home-manager module and a standalone binary.
+The module adds a systemd service which runs a reminder periodically.
+
+The standalone binary is just that, setting up the reminding mechanism is left
+up to the user. You can setup a systemd service, cron entry or whatever else.
+Simply periodically call `drug remind` and use the exit code to do something
+depending on the output. One can do `drug remind && notify-send "Take your meds!"`
+
+=== Home Manager module (flakes)
+
+Add an input like this to flake.nix
+```nix
+drugtracker2 = {
+  url = "github:saygo-png/drugTracker2";
+  inputs.nixpkgs.follows = "nixpkgs";
+};
+```
+
+Import the module inside home manager like so:
+```nix
+home-manager.users.username = { ... }:
+  {
+    imports = [
+      inputs.drugtracker2.homeManagerModules.default
+    ];
+    programs.drugtracker2.enable = true;
+  };
+```
+
+=== Standalone binary
+
 === NixOS (flakes)
 
 Add an input like this to flake.nix

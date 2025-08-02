@@ -17,6 +17,9 @@ common common-options
     vector,
     optparse-applicative,
     path-io,
+    typed-process,
+    ansi-terminal,
+    vector-algorithms,
     path,
     time,
     unix,
@@ -30,7 +33,7 @@ common common-options
 library
   import: common-options
   hs-source-dirs: src
-  exposed-modules: List, Take, Types, Config, Lib, Time
+  exposed-modules: List, Take, ConfigAndTypes, Lib, Time, Remind, Create
 
 executable drug
   import: common-options

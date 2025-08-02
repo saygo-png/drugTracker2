@@ -40,5 +40,5 @@ customRender agoOrIn TimeAgo{..}
             else [prefix]
 
 plural :: Integer -> String -> String
-plural 1 sing = "1 " ++ sing
-plural n sing = show n ++ " " ++ sing ++ "s"
+plural 1 sing = "1 " <> sing
+plural n sing = show n <> " " <> sing <> "s"
