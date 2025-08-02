@@ -27,8 +27,8 @@ in {
       home.packages = lib.mkIf (cfg.package != null) [cfg.package];
 
       systemd.user.services.drug-reminder = lib.mkIf cfg.systemdIntegration {
-        description = "Drug Reminder Service";
-        serviceConfig = {
+        Unit.Description = "Drug Reminder Service";
+        Service = {
           Type = "oneshot";
           ExecStart = let
             drugBin = "${drug}/bin/drug";
@@ -40,9 +40,9 @@ in {
       };
 
       systemd.user.timers.drug-reminder = lib.mkIf cfg.systemdIntegration {
-        description = "Run Drug Reminder Every Hour";
-        wantedBy = ["timers.target"];
-        timerConfig = {
+        Unit.Description = "Run Drug Reminder Every Hour";
+        WantedBy = ["timers.target"];
+        Timer = {
           OnCalendar = "hourly";
           Persistent = true;
           RandomizedDelaySec = 60;
