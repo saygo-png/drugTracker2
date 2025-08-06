@@ -1,75 +1,76 @@
 :warning-caption: :warning:
-
 = drugTracker2
 
 == About
-
-The goal of the program is to keep track of pills. +
-I made this for myself, as I have to take medicine everyday,
-but have a rotating sleep cycle.
+The goal of this program is to keep track of pills. +
+I created this for myself, as I have to take medicine daily
+but have a rotating sleep schedule.
 
 What does it actually do?
 
-- Writes down the date and name of a pill that is taken
-- Lists past entries using relative and absolute time
-- Stores data in a simple csv file, using the XDG Base Directory Specification
+* Records the date and name of each pill taken
+* Lists past entries using relative and absolute time
+* Periodically reminds you about pills you forgot to take using Freedesktop notifications
+* Stores data in a simple CSV file, following the XDG Base Directory Specification
 
 [WARNING]
 ====
-
 This program is new and experimental. I'm also inexperienced as a developer.
 A bug in the time handling could exist, leading to wrong
-dates being displayed.
-
-The timestamps in this program should be used with caution, as a rough guideline.
-Some medicine can require precise timing to be safe. Relying fully on this program could be dangerous. Use common sense.
-
+dates being displayed or reminders fired at the wrong time.
+The information provided by this program should not be trusted by default. Assume it's incorrect and always verify it.
+Some medications require precise timing to be safe. Relying fully on this program is dangerous. Use common sense.
 ====
 
+== Usage
+Create drug definitions using `drug create`.
+These define how often a drug should be taken and its name.
+After you take your medication, use `drug take`
+to choose the appropriate definition.
+Use `drug list` or `drug list -d` to show
+past entries with relative time.
+Use `drug remind` to see what pills you might need to take.
+
 == Installing
-
-Drugtracker2 is provided as a home-manager module and a standalone binary.
+drugTracker2 is provided as a Home Manager module and a standalone binary.
 The module adds a systemd service which runs a reminder periodically.
-
-The standalone binary is just that, setting up the reminding mechanism is left
-up to the user. You can setup a systemd service, cron entry or whatever else.
-Simply periodically call `drug remind` and use the exit code to do something
-depending on the output. One can do `drug remind && notify-send "Take your meds!"`
+The standalone binary is just that — setting up the reminding mechanism is left
+to the user. You can set up a systemd service, cron entry, or whatever else.
+Simply periodically call `drug remind`. You can also use the exit code to do something
+depending on the output.
+If not using the Nix package, you need `fzf` and `notify-send` (from `libnotify`) in your $PATH
+as they are runtime dependencies.
 
 === Home Manager module (flakes)
-
-Add an input like this to flake.nix
+Add an input like this to flake.nix:
 ```nix
 drugtracker2 = {
   url = "github:saygo-png/drugTracker2";
-  inputs.nixpkgs.follows = "nixpkgs";
 };
 ```
-
-Import the module inside home manager like so:
+Import the module inside Home Manager like so:
 ```nix
 home-manager.users.username = { ... }:
   {
     imports = [
       inputs.drugtracker2.homeManagerModules.default
     ];
-    programs.drugtracker2.enable = true;
+    programs.drugtracker2 = {
+      enable = true;
+      remindFrequency = "hourly"; # Uses the "onCalendar" format from systemd timers
+    };
   };
 ```
 
-=== Standalone binary
-
-=== NixOS (flakes)
-
-Add an input like this to flake.nix
+=== NixOS standalone binary (flakes)
+Add an input like this to flake.nix:
 ```nix
 drugtracker2 = {
   url = "github:saygo-png/drugTracker2";
   inputs.nixpkgs.follows = "nixpkgs";
 };
 ```
-
-Add this to your configuration.nix
+Add this to your configuration.nix:
 ```nix
 environment.systemPackages = [
   inputs.drugtracker2.packages.${pkgs.system}.drug
@@ -77,15 +78,16 @@ environment.systemPackages = [
 ```
 
 == Building
-
-The main way of building the project is through `nix build`.
-
-`cabal build` can be used, but mileage in building
-may vary as the dependencies there are not locked.
+The primary way of building the project is through `nix build`.
+`cabal build` can be used, but results may vary
+as the dependencies are not locked.
 
 == Contributing
-
 `nix fmt` to format all files.
-
 `nix shell` to jump into a shell with `drug` available.
-The non flake `nix-shell` is also supported
+The non-flake `nix-shell` is also supported.
+
+== Todo
+* [ ] Add JSON output to `drug remind`
+* [ ] Add ability to use a custom picker for `drug take`
+** [ ] Add JSON configuration
