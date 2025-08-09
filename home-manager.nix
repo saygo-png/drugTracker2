@@ -45,10 +45,8 @@ in {
           ExecStart = let
             drugBin = "${drug}/bin/drug";
             bash = "${pkgs.bash}/bin/bash";
-            notify-send = "${pkgs.libnotify}/bin/notify-send";
-          in "${bash} -c '${drugBin} remind && ${notify-send} \"Drug Reminder\" \"Time to take your drugs!\" || exit 0'";
+          in "${bash} -c '${drugBin} remind || exit 0'";
           # TODO: improve error handling to show errors.
-          Environment = "DISPLAY=:0";
         };
       };
 
