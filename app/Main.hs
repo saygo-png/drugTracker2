@@ -23,7 +23,7 @@ parseCommand =
               (helper <*> pure CmdRemind)
               ( progDesc
                   "Check last taken time, remind if enough time elapsed since. \
-                  \ Returns 1 for don't remind. Returns 0 for yes, remind."
+                  \ Returns 0 for don't remind. Returns 1 for yes, remind."
               )
           )
     )
