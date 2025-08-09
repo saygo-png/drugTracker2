@@ -35,8 +35,11 @@ loadRenderLines = do
 
   let sortedEntries = sortOn (Down . getDate) drugData
       lastEntries = combine (markDupesBy ((==) `on` getEntryName) sortedEntries) drugDefs
-
-  pure $ map (\(d, dupe, p) -> RenderLine d dupe (moreThanNSecondsAgo p (getDate d) now && not dupe) p) lastEntries
+      finalEntries =
+        map
+          (\(d, dupe, p) -> RenderLine d dupe (moreThanNSecondsAgo p (getDate d) now && not dupe) p)
+          lastEntries
+  if V.null lastEntries then putStrLn "No entries matching existing definitions found!" >> exitFailure else pure finalEntries
   where
     markDupesBy :: (a -> a -> Bool) -> Vector a -> Vector (a, Bool)
     markDupesBy eq vec = V.imap checkDuplicate vec

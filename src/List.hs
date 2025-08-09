@@ -6,6 +6,7 @@ import ClassyPrelude
 import ConfigAndTypes
 import Data.Function ((&))
 import Data.Text qualified as T
+import Data.Vector ((!?))
 import Data.Vector qualified as V
 import Lib
 import System.Console.ANSI
@@ -17,54 +18,65 @@ type Row = Vector Text
 listDrugs :: ListArgs -> IO ()
 listDrugs args = prettyPrint args . reverse =<< loadRenderLines
 
--- Formatting
-
-takeLast :: (IsSequence seq) => Index seq -> seq -> seq
-takeLast i l = reverse l & take i & reverse
-
-padRToLen :: Int -> Text -> Text
-padRToLen maxLen t = t <> replicate (maxLen - length t) ' '
-
 prettyTable :: Vector (Row, Bool, Bool) -> IO Text
-prettyTable t = do
+prettyTable table = do
   colorize <- getColorize
   safeSetSGRCode <- getSafeSetSGRCode
-  let getRows (rows, _, _) = rows
-      cols = (length . getRows <$> t) & V.maximum
-
-      columnWidths = V.generate cols colWidth
+  let extractRows (rows, _, _) = rows
+      numCols = fromMaybe 0 . maximumMay $ length . extractRows <$> table
+      pad col = T.justifyLeft (fromMaybe 0 $ columnWidths !? col) ' '
+      columnWidths = V.generate numCols colWidth
         where
-          colWidth col = V.mapMaybe (\(row, _, _) -> length <$> (row V.!? col)) t & V.maximum
+          colWidth col =
+            V.mapMaybe (\(row, _, _) -> length <$> (row !? col)) table
+              & maximumMay
+              & fromMaybe 0
 
-      formatCell ci = padRToLen (columnWidths V.! ci)
-      formatCellColor isOld isMissed ci x = padRToLen (columnWidths V.! ci) x & colorize Vivid color
-        where
-          color
-            | isOld = Green
-            | isMissed = Red
-            | not isMissed = Green
-            | otherwise = White
+      formatColoredCell isOld isMissed colIndex text =
+        let cellColor
+              | isOld = Green
+              | isMissed = Red
+              | not isMissed = Green
+              | otherwise = White
+         in pad colIndex text & colorize Vivid cellColor
 
-      formattedHeader = V.imap formatCell (fromList ["Nr", "Name", "Date"]) & intercalate colText
-      formattedRows = map formatRow t
-      separator = T.replicate i rowText
+      header = V.imap pad (fromList ["Nr", "Name", "Date"]) & intercalate colText
+      separator = T.replicate separatorLength rowText
         where
-          i = length $ customJoin False $ V.imap formatCell $ (\(x, _, _) -> x) $ unsafeHead t
+          firstRowFormatted = case headMay table of
+            Just (row, _, _) -> customJoin False $ V.imap pad row
+            Nothing -> ""
+          separatorLength = max (length firstRowFormatted) (length header)
 
-      formatRow (row, isOld, isMissed) = V.imap (formatCellColor isOld isMissed) row & customJoin True
-      customJoin c list = intercalate colText' (take 3 list) <> " " <> unwords (drop 3 list)
-        where
-          colText' = bool "" (safeSetSGRCode [SetDefaultColor Foreground]) c <> colText
-  pure . intercalate "\n" . cons formattedHeader $ cons separator formattedRows
+      formatRow (row, isOld, isMissed) =
+        V.imap (formatColoredCell isOld isMissed) row & customJoin True
+      customJoin useColor cells =
+        let delimiter =
+              if useColor
+                then safeSetSGRCode [SetDefaultColor Foreground] <> colText
+                else colText
+         in intercalate delimiter (take 3 cells) <> " " <> unwords (drop 3 cells)
+
+  pure . intercalate "\n" $ header `cons` (separator `cons` map formatRow table)
 
 prettyPrint :: ListArgs -> Vector RenderLine -> IO ()
 prettyPrint args vec = do
   nl <- niceLines (getDetailed args)
   putStrLn =<< prettyTable (takeOrAll (getLines args) nl)
   where
+    dateStampAbs dl = do getDate dl & toPrettyLocalTime
+    dateStampRel detailed dl
+      | detailed = do (<> ",") . T.pack <$> dayhourTimeFormat oldDate
+      | otherwise = do (<> ",") . T.pack <$> prettyTimeAutoFromNow oldDate
+      where
+        oldDate = getDate dl
+
     takeOrAll la nl = case la of
       LinesAll -> nl
       LinesInt n -> takeLast n nl
+        where
+          takeLast :: (IsSequence seq) => Index seq -> seq -> seq
+          takeLast i l = reverse l & take i & reverse
 
     niceLines :: Bool -> IO (Vector (Row, Bool, Bool))
     niceLines detailed = do
@@ -80,13 +92,3 @@ prettyPrint args vec = do
           absDates
           (getIsOld <$> vec)
           (getIsMissed <$> vec)
-
-dateStampRel :: Bool -> DrugLine -> IO Text
-dateStampRel detailed dl
-  | detailed = do (<> ",") . T.pack <$> dayhourTimeFormat oldDate
-  | otherwise = do (<> ",") . T.pack <$> prettyTimeAutoFromNow oldDate
-  where
-    oldDate = getDate dl
-
-dateStampAbs :: DrugLine -> IO Text
-dateStampAbs dl = do getDate dl & toPrettyLocalTime
