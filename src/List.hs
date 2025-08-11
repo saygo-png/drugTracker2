@@ -60,9 +60,9 @@ prettyTable table = do
   pure . intercalate "\n" $ header `cons` (separator `cons` map formatRow table)
 
 prettyPrint :: ListArgs -> Vector RenderLine -> IO ()
-prettyPrint args vec = do
-  nl <- niceLines (getDetailed args)
-  putStrLn =<< prettyTable (takeOrAll (getLines args) nl)
+prettyPrint ListArgs{..} vec = do
+  nl <- niceLines getDetailed
+  putStrLn =<< prettyTable (handleArgs getLines getUniques nl)
   where
     dateStampAbs dl = do getDate dl & toPrettyLocalTime
     dateStampRel detailed dl
@@ -71,12 +71,16 @@ prettyPrint args vec = do
       where
         oldDate = getDate dl
 
-    takeOrAll la nl = case la of
-      LinesAll -> nl
-      LinesInt n -> takeLast n nl
-        where
-          takeLast :: (IsSequence seq) => Index seq -> seq -> seq
-          takeLast i l = reverse l & take i & reverse
+    handleArgs :: LinesArg -> Bool -> Vector (Row, Bool, Bool) -> Vector (Row, Bool, Bool)
+    handleArgs la unique nl =
+      if unique
+        then filter (\(_, old, _) -> not old) nl
+        else case la of
+          LinesAll -> nl
+          LinesInt n -> takeLast n nl
+            where
+              takeLast :: (IsSequence seq) => Index seq -> seq -> seq
+              takeLast i l = reverse l & take i & reverse
 
     niceLines :: Bool -> IO (Vector (Row, Bool, Bool))
     niceLines detailed = do

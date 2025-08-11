@@ -51,7 +51,12 @@ parseList =
             <*> switch
               ( long "detailed"
                   <> short 'd'
-                  <> help "EXPERIMENTAL: Whether to display time with day and hour level of detail"
+                  <> help "EXPERIMENTAL: Display time with day and hour level of detail"
+              )
+            <*> switch
+              ( long "unique"
+                  <> short 'u'
+                  <> help "Display the most recent drug entry for each definition. Overrides \"--lines\""
               )
         )
 

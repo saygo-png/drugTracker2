@@ -29,7 +29,7 @@ module ConfigAndTypes (
   DrugDefinition (DrugDefinition, getPeriod, getName),
   LinesArg (LinesInt, LinesAll),
   Command (CmdList, CmdTake, CmdRemind, CmdCreate),
-  ListArgs (ListArgs, getLines, getDetailed),
+  ListArgs (ListArgs, getLines, getDetailed, getUniques),
   ConfigAndTypes.Options (Options, optCommand),
 ) where
 
@@ -116,6 +116,7 @@ instance Read LinesArg where
 data ListArgs = ListArgs
   { getLines :: LinesArg
   , getDetailed :: Bool
+  , getUniques :: Bool
   }
 
 data Command
