@@ -24,6 +24,11 @@
     modifier = drv:
       hl.overrideCabal drv (old: {
         doHaddock = false;
+        enableExecutableProfiling = false;
+        enableLibraryProfiling = false;
+        enableSharedExecutables = false;
+        doBenchmark = false;
+        enableSharedLibraries = false;
         enableDeadCodeElimination = true;
         passthru.nixpkgs = pkgs;
         # Add build tools for wrapping
