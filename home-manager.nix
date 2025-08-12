@@ -5,11 +5,34 @@
   ...
 }: let
   cfg = config.programs.drugtracker2;
-  drug = pkgs.callPackage ./package.nix {};
 in {
   options = {
     programs.drugtracker2 = {
       enable = lib.mkEnableOption "drugtracker2";
+
+      columnString = lib.mkOption {
+        type = lib.types.singleLineStr;
+        default = " | ";
+        description = "Text used to draw a column";
+      };
+
+      rowString = lib.mkOption {
+        type = lib.types.singleLineStr;
+        default = "-";
+        description = "Text used to draw a row";
+      };
+
+      picker = lib.mkOption {
+        type = lib.types.package;
+        default = pkgs.fzf;
+        description = "Picker package used for \"drug take\"";
+      };
+
+      pickerBinName = lib.mkOption {
+        type = lib.types.singleLineStr;
+        default = lib.getExe cfg.picker;
+        description = "Picker binary name used for \"drug take\"";
+      };
 
       systemdIntegration = {
         enable =
@@ -19,7 +42,7 @@ in {
           };
 
         remindFrequency = lib.mkOption {
-          type = lib.types.str;
+          type = lib.types.singleLineStr;
           default = "hourly";
           description = ''
             Systemd timer period to create for scheduled {command}`drug remind`.
@@ -28,22 +51,30 @@ in {
           '';
         };
       };
-
-      package = lib.mkPackageOption {inherit drug;} "drug" {nullable = true;};
     };
   };
 
-  config =
+  config = let
+    jsonFormat = pkgs.formats.json {};
+    jsonConfig = jsonFormat.generate "config.json" {
+      inherit (cfg) columnString rowString;
+      picker = cfg.pickerBinName;
+    };
+    drugConfigured = pkgs.callPackage ./package.nix {
+      inherit (cfg) picker;
+      inherit jsonConfig;
+    };
+  in
     lib.mkIf cfg.enable
     {
-      home.packages = lib.mkIf (cfg.package != null) [cfg.package];
+      home.packages = [drugConfigured];
 
       systemd.user.services.drugtracker2 = lib.mkIf cfg.systemdIntegration.enable {
         Unit.Description = "Drugtracker2 Service";
         Service = {
           Type = "oneshot";
           ExecStart = let
-            drugBin = "${drug}/bin/drug";
+            drugBin = "${drugConfigured}/bin/drug";
             bash = "${pkgs.bash}/bin/bash";
           in "${bash} -c '${drugBin} remind || exit 0'";
           # TODO: improve error handling to show errors.

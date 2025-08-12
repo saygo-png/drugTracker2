@@ -5,9 +5,7 @@ import Data.Time (diffUTCTime)
 import Text.Time.Pretty.TimeAgo
 
 dayhourTimeFormat :: UTCTime -> IO String
-dayhourTimeFormat before = do
-  now <- getCurrentTime
-  pure . customRenderTimeAgo . timeAgo $ diffUTCTime now before
+dayhourTimeFormat before = customRenderTimeAgo . timeAgo . flip diffUTCTime before <$> getCurrentTime
 
 customRenderTimeAgo :: TimeAgo -> String
 customRenderTimeAgo ta =
@@ -39,6 +37,5 @@ customRender agoOrIn TimeAgo{..}
               ["and"] <> [plural hours "hour", suffix]
             else [prefix]
 
-plural :: Integer -> String -> String
-plural 1 sing = "1 " <> sing
-plural n sing = show n <> " " <> sing <> "s"
+    plural 1 sing = "1 " <> sing
+    plural n sing = show n <> " " <> sing <> "s"

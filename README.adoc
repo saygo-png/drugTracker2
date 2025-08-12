@@ -89,5 +89,4 @@ The non-flake `nix-shell` is also supported.
 
 == Todo
 * [ ] Add JSON output to `drug remind`
-* [ ] Add ability to use a custom picker for `drug take`
 ** [ ] Add JSON configuration

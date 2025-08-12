@@ -1,4 +1,14 @@
-{pkgs}: let
+{
+  picker ? null,
+  jsonConfig ? null,
+  # --
+  pkgs,
+}: let
+  pickerPkg =
+    if picker != null
+    then picker
+    else pkgs.fzf;
+
   hl = pkgs.haskell.lib;
 
   listSwitchFunc = [
@@ -31,14 +41,22 @@
         enableSharedLibraries = false;
         enableDeadCodeElimination = true;
         passthru.nixpkgs = pkgs;
-        # Add build tools for wrapping
-        buildTools = (old.buildTools or []) ++ [ pkgs.makeWrapper ];
+        buildTools = (old.buildTools or []) ++ [pkgs.makeWrapper];
 
-        # Add post-install phase to wrap the binary
-        postInstall = (old.postInstall or "") + ''
-          wrapProgram $out/bin/drug \
-            --prefix PATH : ${pkgs.lib.makeBinPath [ pkgs.fzf pkgs.libnotify ]}
-        '';
+        prePatch =
+          (old.prePatch or "")
+          + (
+            if jsonConfig != null
+            then "cp ${jsonConfig} config.json"
+            else ""
+          );
+
+        postInstall =
+          (old.postInstall or "")
+          + ''
+            wrapProgram $out/bin/drug \
+              --prefix PATH : ${pkgs.lib.makeBinPath [pickerPkg pkgs.libnotify]}
+          '';
       });
   };
 in

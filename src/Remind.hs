@@ -1,27 +1,27 @@
 module Remind where
 
 import ClassyPrelude
-import Types
 import Lib
 import System.Exit (exitFailure, exitSuccess)
 import System.Process.Typed (proc, runProcess_)
+import Types
 
 remind :: IO ()
 remind = do
-  renderLines <- loadRenderLines
+  renderLines <- loadRenderLines False
   mapM_ outputRemindInfo $ filter (not . getIsOld) renderLines
   bool exitSuccess exitFailure $ any getIsMissed renderLines
   where
     outputRemindInfo :: RenderLine -> IO ()
-    outputRemindInfo (RenderLine dl _ isMissed secs) = do
-      let mNot = bool "" "not " isMissed
+    outputRemindInfo RenderLine{..} = do
+      let mNot = bool "" "not " getIsMissed
 
-          name = getEntryName dl <> ":"
+          name = getEntryName getDrugLine <> ":"
           takenOrNot = mNot <> "taken in the last"
-          msg = unwords [name, takenOrNot, tshow secs, "seconds"]
+          msg = unwords [name, takenOrNot, tshow getPeriod', "seconds"]
           sendNotification t = runProcess_ . proc "notify-send" $ [unpack t]
 
       colorizeRG <- getColorizeRG
-      let colored = colorizeRG (not isMissed) msg
+      let colored = colorizeRG (not getIsMissed) msg
       putStrLn colored
-      when isMissed $ sendNotification msg
+      when getIsMissed $ sendNotification msg

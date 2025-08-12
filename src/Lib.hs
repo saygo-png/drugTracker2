@@ -13,60 +13,63 @@ module Lib (
 ) where
 
 import ClassyPrelude
-import Types
 import Data.ByteString.Char8 qualified as B8
-import Data.ByteString.Char8 qualified as BS8
 import Data.ByteString.Lazy.Char8 qualified as BL8
 import Data.Csv qualified as Cassava
 import Data.Function ((&))
+import Data.Map qualified as M
 import Data.Text qualified as T
 import Data.Time (diffUTCTime, getCurrentTimeZone, secondsToNominalDiffTime, utcToLocalTime)
 import Data.Vector qualified as V
-import Data.Vector.Algorithms (nubBy)
+import Data.Vector.Algorithms qualified as V
 import Path qualified as P
-import Path.IO qualified as PI
+import Path.IO (doesFileExist)
 import System.Console.ANSI
 import System.Exit (exitFailure)
 import TemplateLib
+import Text.Time.Pretty (prettyTimeAutoFromNow)
+import Time
+import Types
 
-loadRenderLines :: IO (Vector RenderLine)
-loadRenderLines = do
+loadRenderLines :: Bool -> IO (Vector RenderLine)
+loadRenderLines detailed = do
   drugData <- loadDrugData
   drugDefs <- loadDrugDefinitions
-  now <- getCurrentTime
 
   let sortedEntries = sortOn (Down . getDate) drugData
-      lastEntries = combine (markDupesBy ((==) `on` getEntryName) sortedEntries) drugDefs
-      finalEntries =
-        map
-          (\(d, dupe, p) -> RenderLine d dupe (moreThanNSecondsAgo p (getDate d) now && not dupe) p)
-          lastEntries
-  if V.null lastEntries then putStrLn "No entries matching existing definitions found!" >> exitFailure else pure finalEntries
+      defMap = V.foldr (\dd -> M.insert (getName dd) (getPeriod dd)) M.empty drugDefs
+      combinedEntries = V.imapMaybe (makeCombinedEntry defMap sortedEntries) sortedEntries
+
+  if V.null combinedEntries
+    then putStrLn "No entries matching existing definitions found!" >> exitFailure
+    else V.imapM constructRenderLine $ reverse combinedEntries
   where
-    markDupesBy :: (a -> a -> Bool) -> Vector a -> Vector (a, Bool)
-    markDupesBy eq vec = V.imap checkDuplicate vec
-      where
-        checkDuplicate i x =
-          let isDuplicate = V.any (eq x) (V.take i vec)
-           in (x, isDuplicate)
-    combine :: Vector (DrugLine, Bool) -> Vector DrugDefinition -> Vector (DrugLine, Bool, Integer)
-    combine drugLines drugDefs =
-      V.concatMap
-        ( \(dl, b) ->
-            V.mapMaybe
-              ( \dd ->
-                  if getEntryName dl == getName dd
-                    then Just (dl, b, getPeriod dd)
-                    else Nothing
-              )
-              drugDefs
-        )
-        drugLines
+    dateStampRel date =
+      let f = if detailed then dayhourTimeFormat else prettyTimeAutoFromNow
+       in (<> ",") . T.pack <$> f date
+
+    makeCombinedEntry defMap sortedE i dl = do
+      period <- M.lookup (getEntryName dl) defMap
+      let isDupe = V.any ((== getEntryName dl) . getEntryName) (V.take i sortedE)
+      pure (dl, isDupe, period)
+
+    constructRenderLine i (drugLine, old, period) = do
+      let date = getDate drugLine
+      now <- getCurrentTime
+      relStamp <- dateStampRel date
+      absStamp <- toPrettyLocalTime date
+      pure
+        . RenderLine
+          drugLine
+          old
+          (moreThanNSecondsAgo period date now && not old)
+          period
+          relStamp
+          absStamp
+        $ i + 1
 
 getColorizeRG :: IO (Bool -> Text -> Text)
-getColorizeRG = do
-  colorize <- getColorize
-  pure $ colorize Vivid . bool Red Green
+getColorizeRG = (. bool Red Green) . ($ Vivid) <$> getColorize
 
 getColorize :: IO (ColorIntensity -> Color -> Text -> Text)
 getColorize = do
@@ -96,17 +99,20 @@ toPrettyLocalTime utcTime = do
   let text = utcToLocalTime localTZ utcTime & tshow
   takeWhile (/= '.') text & dropEnd 3 & pure
 
+haveYouRanErr :: IO a
+haveYouRanErr = putStrLn "Have you ran \"drug take\"?" >> exitFailure
+
 loadDrugDefinitions :: IO (Vector DrugDefinition)
 loadDrugDefinitions = do
   csvFile <- getCsvDrugDefinitions
   getFileState csvFile >>= \case
-    FileNotExists -> putStrLn "Have you ran \"drug create\"?" >> exitFailure
-    FileEmpty -> putStrLn "Have you ran \"drug create\"?" >> exitFailure
+    FileNotExists -> haveYouRanErr
+    FileEmpty -> haveYouRanErr
     FileHasContent -> do
       fileData <- BL8.fromStrict <$> B8.readFile (P.fromAbsFile csvFile)
       case parseCSV fileData of
         Left t -> terror t
-        Right v -> pure $ nubBy (comparing getName) v
+        Right v -> pure $ V.nubBy (comparing getName) v
       where
         parseCSV fileData =
           case Cassava.decodeByName @DrugDefinition fileData of
@@ -117,8 +123,8 @@ loadDrugData :: IO (Vector DrugLine)
 loadDrugData = do
   csvFile <- getCsvEntries
   getFileState csvFile >>= \case
-    FileNotExists -> putStrLn "Have you ran \"drug take\"?" >> exitFailure
-    FileEmpty -> putStrLn "Have you ran \"drug take\"?" >> exitFailure
+    FileNotExists -> haveYouRanErr
+    FileEmpty -> haveYouRanErr
     FileHasContent -> do
       fileData <- BL8.fromStrict <$> B8.readFile (P.fromAbsFile csvFile)
       case parseEntriesCSV fileData of
@@ -133,9 +139,9 @@ parseEntriesCSV fileData =
 
 getFileState :: P.Path P.Abs P.File -> IO FileState
 getFileState path = do
-  exists <- PI.doesFileExist path
+  exists <- doesFileExist path
   if not exists
     then pure FileNotExists
     else do
-      isEmpty <- P.fromAbsFile path & BS8.readFile <&> BS8.null
+      isEmpty <- P.fromAbsFile path & B8.readFile <&> B8.null
       pure $ if isEmpty then FileEmpty else FileHasContent

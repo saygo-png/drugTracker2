@@ -19,9 +19,12 @@ common common-options
     path-io,
     typed-process,
     ansi-terminal,
+    aeson,
+    template-haskell,
     vector-algorithms,
     path,
     time,
+    containers,
     unix,
     classy-prelude,
     pretty-relative-time
@@ -33,7 +36,7 @@ common common-options
 library
   import: common-options
   hs-source-dirs: src
-  exposed-modules: List, Take, Types, Lib, TemplateLib, Time, Remind, Create, Config
+  exposed-modules: List, Take, Types, Lib, TemplateLib, Time, Remind, Create, ParseConfig, LoadConfig
 
 executable drug
   import: common-options

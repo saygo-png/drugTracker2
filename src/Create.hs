@@ -4,7 +4,6 @@
 module Create (createDrugItem) where
 
 import ClassyPrelude
-import Types
 import Data.ByteString.Char8 qualified as B8
 import Data.Csv qualified as Cassava
 import Data.Function ((&))
@@ -14,6 +13,7 @@ import Path qualified as P
 import Path.IO qualified as PI
 import System.Exit (exitFailure)
 import Text.Printf (printf)
+import Types
 
 createDrugItem :: DrugDefinition -> IO ()
 createDrugItem d = do
@@ -36,8 +36,7 @@ createDrugItem d = do
        in printf "Created definition \"%s\" which should be taken every %s seconds\n" getName period
 
     writeWithHeader :: Vector DrugDefinition -> FilePath -> IO ()
-    writeWithHeader drugDefs output = do
-      let drugDefs' = toList drugDefs
+    writeWithHeader drugDefs output =
       let header = definitionsToHeader csvDefinitionsHT
-      let dataForWrite = Cassava.encodeByName header drugDefs'
-      B8.writeFile output (toStrict dataForWrite)
+          dataForWrite = Cassava.encodeByName header $ toList drugDefs
+       in B8.writeFile output $ toStrict dataForWrite

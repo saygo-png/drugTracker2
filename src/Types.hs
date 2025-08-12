@@ -9,7 +9,7 @@ module Types (
   csvEntriesHT,
   entriesToHeader,
   DrugLine (DrugLine),
-  RenderLine (RenderLine, getIsMissed, getIsOld, getPeriod', getDrugLine),
+  RenderLine (RenderLine, getIsMissed, getIndex, getDateRel, getDateAbs, getIsOld, getPeriod', getDrugLine),
   DefinitionsHeader,
   EntriesHeader,
   -- }}}
@@ -18,18 +18,21 @@ module Types (
   DrugDefinition (DrugDefinition, getPeriod, getName),
   LinesArg (LinesInt, LinesAll),
   Command (CmdList, CmdTake, CmdRemind, CmdCreate),
+  Config (Config, columnString, rowString, picker),
   ListArgs (ListArgs, getLines, getDetailed, getUniques),
   Types.Options (Options, optCommand),
 ) where
 
 import ClassyPrelude
 import Control.Arrow ((>>>))
+import Data.Aeson qualified as J
 import Data.ByteString.Char8 qualified as BS8
 import Data.Csv
 import Data.Csv qualified as C
 import Data.Fixed (Pico)
 import Data.Time.Format.ISO8601 (iso8601ParseM, iso8601Show)
 import Data.Vector qualified as Vector
+import Language.Haskell.TH.Syntax (Lift)
 import Text.ParserCombinators.ReadPrec qualified as R
 import Text.Read (readPrec)
 import Text.Read.Lex (Lexeme (..), lex)
@@ -48,7 +51,19 @@ entriesToHeader :: EntriesHeader -> C.Header
 entriesToHeader (EntriesHeader (a, b)) =
   Vector.fromList [a, b]
 
--- Types {{{
+data Config = Config
+  { columnString :: Text
+  , rowString :: Text
+  , picker :: String
+  }
+  deriving (Show, Lift)
+
+instance J.FromJSON Config where
+  parseJSON = J.withObject "Config" $ \o ->
+    Config
+      <$> o J..: "columnString"
+      <*> o J..: "rowString"
+      <*> o J..: "picker"
 
 type IsMissed = Bool
 
@@ -59,6 +74,9 @@ data RenderLine = RenderLine
   , getIsOld :: IsOld
   , getIsMissed :: IsMissed
   , getPeriod' :: Integer
+  , getDateRel :: Text
+  , getDateAbs :: Text
+  , getIndex :: Int
   }
   deriving (Show)
 
@@ -162,5 +180,3 @@ instance ToField UTCTime where
 
 instance FromField UTCTime where
   parseField = BS8.unpack >>> iso8601ParseM
-
--- }}}

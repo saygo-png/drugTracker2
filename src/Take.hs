@@ -3,31 +3,30 @@ module Take (
 ) where
 
 import ClassyPrelude
-import Types
-import Config
 import Data.ByteString.Lazy.Char8 qualified as BL8
 import Data.Csv qualified as Cassava
 import Data.Text.Encoding qualified as T
 import Data.Text.Lazy qualified as T
 import Data.Text.Lazy.Encoding qualified as TL
-import Data.Time qualified as TI
 import Lib
+import LoadConfig
 import Path qualified as P
-import Path.IO qualified as PI
+import Path.IO (createDirIfMissing)
 import System.Exit (exitFailure)
 import System.Process.Typed qualified as S
 import Text.Printf (printf)
+import Types
 
 takeDrug :: IO ()
 takeDrug = do
-  drug <- liftA2 DrugLine getDrugDef TI.getCurrentTime
+  drug <- liftA2 DrugLine getDrugDef getCurrentTime
 
   output <- getCsvEntries
   let fOutput = P.fromAbsFile output
 
   getFileState output >>= \case
     FileNotExists -> do
-      PI.createDirIfMissing True =<< getDataDir
+      createDirIfMissing True =<< getDataDir
       writeWithHeader drug fOutput
     FileEmpty -> writeWithHeader drug fOutput
     FileHasContent -> appendWithoutHeader drug fOutput
@@ -35,13 +34,11 @@ takeDrug = do
 getDrugDef :: IO Text
 getDrugDef = do
   defs <- loadDrugDefinitions
-  result <- runFuzzyFinder fuzzyFinder . intercalate "\n" . sort $ fmap getName defs
+  result <- runPicker (picker config) . intercalate "\n" . sort $ getName <$> defs
   maybe (putStrLn "Invalid input" >> exitFailure) pure result
   where
-    runFuzzyFinder :: String -> Text -> IO (Maybe Text)
-    runFuzzyFinder finder input = do
+    runPicker finder input = do
       (exitCode, output, _) <- S.readProcess . pipeIn input $ S.proc finder []
-
       case exitCode of
         S.ExitSuccess -> decode output
         _ -> pure Nothing
@@ -54,13 +51,11 @@ wroteInfo DrugLine{..} =
   printf "Took \"%s\" on %s\n" getEntryName =<< toPrettyLocalTime getDate
 
 writeWithHeader :: DrugLine -> FilePath -> IO ()
-writeWithHeader drug output = do
+writeWithHeader drug output =
   let dataForWrite = Cassava.encodeByName (entriesToHeader csvEntriesHT) [drug]
-  BL8.writeFile output dataForWrite
-  wroteInfo drug
+   in BL8.writeFile output dataForWrite >> wroteInfo drug
 
 appendWithoutHeader :: DrugLine -> FilePath -> IO ()
-appendWithoutHeader drug output = do
+appendWithoutHeader drug output =
   let dataForWrite = Cassava.encode [drug]
-  BL8.appendFile output dataForWrite
-  wroteInfo drug
+   in BL8.appendFile output dataForWrite >> wroteInfo drug
