@@ -1,7 +1,7 @@
 module Remind where
 
 import ClassyPrelude
-import ConfigAndTypes
+import Types
 import Lib
 import System.Exit (exitFailure, exitSuccess)
 import System.Process.Typed (proc, runProcess_)

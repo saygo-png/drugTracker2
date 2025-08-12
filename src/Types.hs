@@ -1,18 +1,7 @@
-{-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-module ConfigAndTypes (
-  -- Config {{{
-  remindPeriod,
-  getDataDir,
-  colText,
-  rowText,
-  fuzzyFinder,
-  -- }}}
-
+module Types (
   -- Csv {{{
-  getCsvEntries,
-  getCsvDrugDefinitions,
   getEntryName,
   getDate,
   csvDefinitionsHT,
@@ -30,7 +19,7 @@ module ConfigAndTypes (
   LinesArg (LinesInt, LinesAll),
   Command (CmdList, CmdTake, CmdRemind, CmdCreate),
   ListArgs (ListArgs, getLines, getDetailed, getUniques),
-  ConfigAndTypes.Options (Options, optCommand),
+  Types.Options (Options, optCommand),
 ) where
 
 import ClassyPrelude
@@ -41,37 +30,9 @@ import Data.Csv qualified as C
 import Data.Fixed (Pico)
 import Data.Time.Format.ISO8601 (iso8601ParseM, iso8601Show)
 import Data.Vector qualified as Vector
-import Path qualified as P
-import Path.IO qualified as PI
 import Text.ParserCombinators.ReadPrec qualified as R
 import Text.Read (readPrec)
 import Text.Read.Lex (Lexeme (..), lex)
-
-getCsvDrugDefinitions :: IO (P.Path P.Abs P.File)
-getCsvDrugDefinitions = getFileInDataDir $(P.mkRelFile "drugDefinitions.csv")
-
-getCsvEntries :: IO (P.Path P.Abs P.File)
-getCsvEntries = getFileInDataDir $(P.mkRelFile "data.csv")
-
-getFileInDataDir :: P.Path P.Rel t -> IO (P.Path P.Abs t)
-getFileInDataDir file = flip (P.</>) file <$> getDataDir
-
-getDataDir :: IO (P.Path P.Abs P.Dir)
-getDataDir = PI.getXdgDir PI.XdgData $ Just $(P.mkRelDir "drug2")
-
-colText :: Text
-colText = " | "
-
-remindPeriod :: Integer
-remindPeriod = day
-  where
-    day = 86400
-
-rowText :: Text
-rowText = "-"
-
-fuzzyFinder :: String
-fuzzyFinder = "fzf"
 
 csvDefinitionsHT :: DefinitionsHeader
 csvDefinitionsHT = DefinitionsHeader ("name", "frequency")

@@ -1,4 +1,5 @@
 module Lib (
+  module TemplateLib,
   toPrettyLocalTime,
   getFileState,
   getSafeSetSGRCode,
@@ -12,7 +13,7 @@ module Lib (
 ) where
 
 import ClassyPrelude
-import ConfigAndTypes
+import Types
 import Data.ByteString.Char8 qualified as B8
 import Data.ByteString.Char8 qualified as BS8
 import Data.ByteString.Lazy.Char8 qualified as BL8
@@ -26,6 +27,7 @@ import Path qualified as P
 import Path.IO qualified as PI
 import System.Console.ANSI
 import System.Exit (exitFailure)
+import TemplateLib
 
 loadRenderLines :: IO (Vector RenderLine)
 loadRenderLines = do

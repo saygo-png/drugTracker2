@@ -33,7 +33,7 @@ common common-options
 library
   import: common-options
   hs-source-dirs: src
-  exposed-modules: List, Take, ConfigAndTypes, Lib, Time, Remind, Create
+  exposed-modules: List, Take, Types, Lib, TemplateLib, Time, Remind, Create, Config
 
 executable drug
   import: common-options

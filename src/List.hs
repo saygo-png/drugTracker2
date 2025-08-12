@@ -3,12 +3,13 @@ module List (
 ) where
 
 import ClassyPrelude
-import ConfigAndTypes
+import Types
 import Data.Function ((&))
 import Data.Text qualified as T
 import Data.Vector ((!?))
 import Data.Vector qualified as V
 import Lib
+import Config
 import System.Console.ANSI
 import Text.Time.Pretty as PT
 import Time

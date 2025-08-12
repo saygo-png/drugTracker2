@@ -3,8 +3,8 @@ module Take (
 ) where
 
 import ClassyPrelude
-import ConfigAndTypes
-import Create qualified as C
+import Types
+import Config
 import Data.ByteString.Lazy.Char8 qualified as BL8
 import Data.Csv qualified as Cassava
 import Data.Text.Encoding qualified as T

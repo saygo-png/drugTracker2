@@ -1,7 +1,7 @@
 module Main where
 
 import ClassyPrelude
-import ConfigAndTypes
+import Types
 import Create
 import List
 import Options.Applicative

@@ -4,7 +4,7 @@
 module Create (createDrugItem) where
 
 import ClassyPrelude
-import ConfigAndTypes
+import Types
 import Data.ByteString.Char8 qualified as B8
 import Data.Csv qualified as Cassava
 import Data.Function ((&))
