@@ -9,8 +9,10 @@ import Types
 remind :: IO ()
 remind = do
   renderLines <- loadRenderLines False
-  mapM_ outputRemindInfo $ filter (not . getIsOld) renderLines
-  bool exitSuccess exitFailure $ any getIsMissed renderLines
+  let forReminding = filter (liftA2 (&&) (not . getIsOld) getReminding') renderLines
+  mapM_ outputRemindInfo forReminding
+  when (null forReminding) $ putStrLn "No definitions to show!"
+  bool exitSuccess exitFailure $ any (liftA2 (&&) getIsMissed getReminding') renderLines
   where
     outputRemindInfo :: RenderLine -> IO ()
     outputRemindInfo RenderLine{..} = do

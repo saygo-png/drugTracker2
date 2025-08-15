@@ -9,15 +9,16 @@ module Types (
   csvEntriesHT,
   entriesToHeader,
   DrugLine (DrugLine),
-  RenderLine (RenderLine, getIsMissed, getIndex, getDateRel, getDateAbs, getIsOld, getPeriod', getDrugLine),
+  RenderLine (RenderLine, getReminding', getIsMissed, getIndex, getDateRel, getDateAbs, getIsOld, getPeriod', getDrugLine),
   DefinitionsHeader,
   EntriesHeader,
   -- }}}
-
+  IsMissed,
+  IsOld,
   FileState (FileNotExists, FileEmpty, FileHasContent),
-  DrugDefinition (DrugDefinition, getPeriod, getName),
+  DrugDefinition (DrugDefinition, getPeriod, getName, getReminding),
   LinesArg (LinesInt, LinesAll),
-  Command (CmdList, CmdTake, CmdRemind, CmdCreate, CmdStop, CmdStart),
+  Command (CmdList, CmdTake, CmdStatus, CmdRemind, CmdCreate, CmdEnable, CmdDisable),
   Config (Config, columnString, rowString, picker),
   ListArgs (ListArgs, getLines, getDetailed, getUniques),
   Types.Options (Options, optCommand),
@@ -38,14 +39,14 @@ import Text.Read (readPrec)
 import Text.Read.Lex (Lexeme (..), lex)
 
 csvDefinitionsHT :: DefinitionsHeader
-csvDefinitionsHT = DefinitionsHeader ("name", "frequency")
+csvDefinitionsHT = DefinitionsHeader ("name", "frequency", "reminding")
 
 csvEntriesHT :: EntriesHeader
 csvEntriesHT = EntriesHeader ("drug", "date")
 
 definitionsToHeader :: DefinitionsHeader -> C.Header
-definitionsToHeader (DefinitionsHeader (a, b)) =
-  Vector.fromList [a, b]
+definitionsToHeader (DefinitionsHeader (a, b, c)) =
+  Vector.fromList [a, b, c]
 
 entriesToHeader :: EntriesHeader -> C.Header
 entriesToHeader (EntriesHeader (a, b)) =
@@ -77,6 +78,7 @@ data RenderLine = RenderLine
   , getDateRel :: Text
   , getDateAbs :: Text
   , getIndex :: Int
+  , getReminding' :: Bool
   }
   deriving (Show)
 
@@ -101,10 +103,11 @@ data ListArgs = ListArgs
 data Command
   = CmdList ListArgs
   | CmdTake
+  | CmdStatus
   | CmdRemind
   | CmdCreate DrugDefinition
-  | CmdStop
-  | CmdStart
+  | CmdDisable
+  | CmdEnable
 
 newtype Options = Options {optCommand :: Command}
 
@@ -114,7 +117,7 @@ data FileState = FileNotExists | FileEmpty | FileHasContent
   deriving (Eq)
 
 -- CSV
-newtype DefinitionsHeader = DefinitionsHeader (ByteString, ByteString)
+newtype DefinitionsHeader = DefinitionsHeader (ByteString, ByteString, ByteString)
 
 newtype EntriesHeader = EntriesHeader (ByteString, ByteString)
 
@@ -122,27 +125,41 @@ newtype EntriesHeader = EntriesHeader (ByteString, ByteString)
 data DrugDefinition = DrugDefinition
   { getName :: Text
   , getPeriod :: Integer
+  , getReminding :: Bool
   }
   deriving (Eq, Show)
 
 instance ToNamedRecord DrugDefinition where
-  toNamedRecord (DrugDefinition a b) =
+  toNamedRecord (DrugDefinition a b c) =
     let
-      DefinitionsHeader (col1Name, col2Frequency) = csvDefinitionsHT
+      DefinitionsHeader (col1Name, col2Frequency, col3Reminding) = csvDefinitionsHT
      in
       namedRecord
-        [col1Name .= a, col2Frequency .= b]
+        [col1Name .= a, col2Frequency .= b, col3Reminding .= c]
 
 instance FromNamedRecord DrugDefinition where
   parseNamedRecord r =
     let
-      DefinitionsHeader (col1Name, col2Frequency) = csvDefinitionsHT
+      DefinitionsHeader (col1Name, col2Frequency, col3Reminding) = csvDefinitionsHT
      in
       DrugDefinition
         <$> r
           .: col1Name
         <*> r
           .: col2Frequency
+        <*> r
+          .: col3Reminding
+
+instance ToField Bool where
+  toField = tshow >>> encodeUtf8
+
+instance FromField Bool where
+  parseField field
+    | field == "true" = pure True
+    | field == "True" = pure True
+    | field == "false" = pure False
+    | field == "False" = pure False
+    | otherwise = terror $ "Invalid boolean value: " <> decodeUtf8 field
 
 instance ToField Pico where
   toField = tshow >>> encodeUtf8

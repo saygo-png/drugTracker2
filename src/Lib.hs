@@ -40,12 +40,15 @@ import Types
 loadRenderLines :: Bool -> IO (Vector RenderLine)
 loadRenderLines detailed = do
   drugData <- loadDrugData
-  drugDefs <- loadDrugDefinitions
+  (drugDefs, _) <- loadDrugDefinitions
   now <- getCurrentTime
   lTZ <- getCurrentTimeZone
 
   let sortedEntries = sortOn (Down . getDate) drugData
-      defMap = V.foldr (\dd -> M.insert (getName dd) (getPeriod dd)) M.empty drugDefs
+      defMap = V.foldr insertData M.empty drugDefs
+        where
+          insertData DrugDefinition{..} =
+            M.insert getName (getPeriod, getReminding)
       combinedEntries = V.imapMaybe (makeCombinedEntry defMap sortedEntries) sortedEntries
 
   if V.null combinedEntries
@@ -57,11 +60,11 @@ loadRenderLines detailed = do
        in (<> ",") . T.pack $ f date
 
     makeCombinedEntry defMap sortedE i dl = do
-      period <- M.lookup (getEntryName dl) defMap
+      (period, reminding) <- M.lookup (getEntryName dl) defMap
       let isDupe = V.any ((== getEntryName dl) . getEntryName) (V.take i sortedE)
-      pure (dl, isDupe, period)
+      pure (dl, isDupe, period, reminding)
 
-    constructRenderLine localTZ now i (drugLine, old, period) =
+    constructRenderLine localTZ now i (drugLine, old, period, reminding) =
       let date = getDate drugLine
           absStamp = toPrettyLocalTime localTZ date
           relStamp = dateStampRel now date
@@ -72,11 +75,12 @@ loadRenderLines detailed = do
             period
             relStamp
             absStamp
-            $ i + 1
+            (i + 1)
+            $ reminding
 
 getDrugDef :: IO Text
 getDrugDef = do
-  defs <- loadDrugDefinitions
+  (defs, _) <- loadDrugDefinitions
   result <- runPicker (picker config) . intercalate "\n" . sort $ getName <$> defs
   maybe (putStrLn "Invalid input" >> exitFailure) pure result
   where
@@ -122,7 +126,7 @@ toPrettyLocalTime localTZ utcTime =
 haveYouRanErr :: IO a
 haveYouRanErr = putStrLn "Have you ran \"drug take\"?" >> exitFailure
 
-loadDrugDefinitions :: IO (Vector DrugDefinition)
+loadDrugDefinitions :: IO (Vector DrugDefinition, P.Path P.Abs P.File)
 loadDrugDefinitions = do
   csvFile <- getCsvDrugDefinitions
   getFileState csvFile >>= \case
@@ -132,7 +136,7 @@ loadDrugDefinitions = do
       fileData <- BL8.fromStrict <$> B8.readFile (P.fromAbsFile csvFile)
       case parseCSV fileData of
         Left t -> terror t
-        Right v -> pure $ V.nubBy (comparing getName) v
+        Right v -> pure (V.nubBy (comparing getName) v, csvFile)
       where
         parseCSV fileData =
           case Cassava.decodeByName @DrugDefinition fileData of

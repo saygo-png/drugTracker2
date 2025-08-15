@@ -4,6 +4,9 @@ import ClassyPrelude
 import Types
 import Create
 import List
+import Enable
+import Status
+import Disable
 import Options.Applicative
 import Remind
 import Take
@@ -17,8 +20,9 @@ parseCommand =
     ( command "take" (info (helper <*> pure CmdTake) (progDesc "Take drug."))
         <> command "list" (info (helper <*> parseList) (progDesc "List previously taken drugs."))
         <> command "create" (info (helper <*> parseCreate) (progDesc "Create a drug item."))
-        <> command "stop" (info (helper <*> pure CmdStop) (progDesc "Stop reminding about drug item."))
-        <> command "start" (info (helper <*> pure CmdStart) (progDesc "Start reminding about drug item."))
+        <> command "disable" (info (helper <*> pure CmdDisable) (progDesc "Stop reminding about drug item."))
+        <> command "status" (info (helper <*> pure CmdStatus) (progDesc "Show status of drug entries."))
+        <> command "enable" (info (helper <*> pure CmdEnable) (progDesc "Start reminding about drug item."))
         <> command
           "remind"
           ( info
@@ -36,6 +40,7 @@ parseCreate =
     <$> ( DrugDefinition
             <$> argument str (metavar "DRUG_NAME" <> help "Name of the drug to take")
             <*> argument auto (metavar "FREQUENCY" <> help "How often to take the drug in seconds")
+            <*> pure True
         )
 
 parseList :: Parser Command
@@ -72,6 +77,7 @@ main = do
     CmdTake -> takeDrug
     CmdList l -> listDrugs l
     CmdRemind -> remind
-    CmdStart -> undefined
-    CmdStop -> undefined
+    CmdEnable -> enable
+    CmdDisable -> disable
+    CmdStatus -> status
     CmdCreate d -> createDrugItem d

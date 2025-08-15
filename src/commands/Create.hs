@@ -24,7 +24,7 @@ createDrugItem d = do
     FileNotExists -> (PI.createDirIfMissing True =<< getDataDir) >> writeAndLogWith V.empty
     FileEmpty -> writeAndLogWith V.empty
     FileHasContent -> do
-      existingDefs <- loadDrugDefinitions
+      (existingDefs, _) <- loadDrugDefinitions
       let entryExists = any ((== getName d) . getName) existingDefs
       when entryExists $ do
         printf "Definition for \"%s\" already exists\n" $ getName d

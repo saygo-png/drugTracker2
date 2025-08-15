@@ -2,8 +2,8 @@
 
 module LoadConfig (config) where
 
-import Types
 import ParseConfig
+import Types
 
 config :: Config
 config = $(loadConfig)

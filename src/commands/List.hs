@@ -3,73 +3,52 @@ module List (
 ) where
 
 import ClassyPrelude
-import Data.Function ((&))
-import Data.Text qualified as T
-import Data.Vector ((!?))
-import Data.Vector qualified as V
 import Lib
 import LoadConfig
 import System.Console.ANSI
+import Table
 import Types
 
 listDrugs :: ListArgs -> IO ()
 listDrugs ListArgs{..} = do
-  nl <- loadRenderLines getDetailed
-  putStrLn =<< prettyTable config (handleArgs getLines getUniques nl)
+  rls <- loadRenderLines getDetailed
+  putStrLn =<< prettyTable (handleArgs getLines getUniques rls)
   where
     handleArgs :: LinesArg -> Bool -> Vector RenderLine -> Vector RenderLine
-    handleArgs la unique nl =
+    handleArgs la unique rls =
       if unique
-        then filter (not . getIsOld) nl
+        then filter (not . getIsOld) rls
         else case la of
-          LinesAll -> nl
-          LinesInt n -> takeLast n nl
+          LinesAll -> rls
+          LinesInt n -> takeLast n rls
             where
               takeLast i = reverse . take i . reverse
 
-prettyTable :: Config -> Vector RenderLine -> IO Text
-prettyTable Config{..} rls = do
-  colorize <- getColorize
+prettyTable :: Vector RenderLine -> IO Text
+prettyTable rls = do
   safeSetSGRCode <- getSafeSetSGRCode
-  let
-    rows = mkRowVec <$> rls
-    numCols = fromMaybe 0 . maximumMay $ length <$> rows
-    columnWidths = V.generate numCols colWidth
-      where
-        colWidth col =
-          V.mapMaybe (\x -> length <$> (x !? col)) rows
-            & maximumMay
-            & fromMaybe 0
 
-    pad col = T.justifyLeft (fromMaybe 0 $ columnWidths !? col) ' '
+  let header = fromList ["Nr", "Name", "Date"]
 
-    formatColoredCell isOld isMissed colIndex text =
-      let cellColor
-            | isOld = Green
-            | isMissed = Red
-            | not isMissed = Green
-            | otherwise = White
-       in pad colIndex text & colorize Vivid cellColor
+      color (StatusContext _) = White
+      color (ListContext isEnabled isOld isMissed)
+        | not isEnabled = Black
+        | isOld = Green
+        | isMissed = Red
+        | not isMissed = Green
+        | otherwise = White
 
-    header = V.imap pad (fromList ["Nr", "Name", "Date"]) & intercalate columnString
-    separator = T.replicate separatorLength rowString
-      where
-        firstRowFormatted = case headMay rls of
-          Just rl -> customJoin False . V.imap pad $ mkRowVec rl
-          Nothing -> ""
-        separatorLength = on max length firstRowFormatted header
+      customJoin useColor cells =
+        let delimiter =
+              if useColor
+                then safeSetSGRCode [SetDefaultColor Foreground] <> columnString config
+                else columnString config
+         in intercalate delimiter (take 3 cells) <> " " <> unwords (drop 3 cells)
 
-    formatRow (row, isOld, isMissed) =
-      V.imap (formatColoredCell isOld isMissed) row & customJoin True
-    customJoin useColor cells =
-      let delimiter =
-            if useColor
-              then safeSetSGRCode [SetDefaultColor Foreground] <> columnString
-              else columnString
-       in intercalate delimiter (take 3 cells) <> " " <> unwords (drop 3 cells)
+      getInfo RenderLine{..} = RenderContext (ListContext getReminding' getIsOld getIsMissed) vec
+        where
+          name = getEntryName getDrugLine
+          idx = tshow getIndex
+          vec = fromList [idx, name, getDateRel, getDateAbs]
 
-  pure . intercalate "\n" $ header `cons` (separator `cons` map formatRow (mkRow <$> rls))
-  where
-    mkRow rl = (mkRowVec rl, getIsOld rl, getIsMissed rl)
-    mkRowVec RenderLine{..} =
-      fromList [tshow getIndex, getEntryName getDrugLine, getDateRel, getDateAbs]
+  colorTableWithJoin customJoin color $ plainTable getInfo header rls
