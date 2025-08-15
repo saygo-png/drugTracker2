@@ -1,6 +1,12 @@
 :warning-caption: :warning:
 = drugTracker2
 
+== Preface
+
+This program is not ready for daily use — it does not maintain backwards compatibility.
+That will be done once I feel like drugTracker2 has reached a core set of features.
+Breaking changes are tracked in https://github.com/saygo-png/drugTracker2/issues/1.
+
 == About
 The goal of this program is to keep track of pills. +
 I created this for myself, as I have to take medicine daily
@@ -39,9 +45,9 @@ to the user. You can set up a systemd service, cron entry, or whatever else.
 Simply periodically call `drug remind`. You can also use the exit code to do something
 depending on the output.
 If not using the Nix package, you need `fzf` and `notify-send` (from `libnotify`) in your $PATH
-as they are runtime dependencies.
+as they are runtime dependencies. One can change the config to not use `fzf`.
 
-=== Home Manager module (flakes)
+=== Nix Home Manager module (flakes)
 Add an input like this to flake.nix:
 ```nix
 drugtracker2 = {
@@ -57,7 +63,6 @@ home-manager.users.username = { ... }:
     ];
     programs.drugtracker2 = {
       enable = true;
-      remindFrequency = "hourly"; # Uses the "onCalendar" format from systemd timers
     };
   };
 ```
@@ -77,6 +82,56 @@ environment.systemPackages = [
 ];
 ```
 
+== Configuration
+
+This program is configured in source code with JSON.
+The keys, defaults and their meanings are listed in https://github.com/saygo-png/drugTracker2/blob/main/src/ParseConfig.hs#L16
+
+Example JSON config::
+```
+{
+  "columnString": " | ",
+  "rowString": "-",
+  "picker": "fzf"
+}
+```
+
+=== Without Nix
+
+Create a `config.json` file in the root of the project with the desired settings and compile.
+
+=== With the Nix Home Manager module
+
+Set options in `programs.drugtracker2`
+It uses the same names as the JSON config.
+The program will be automatically recompiled with the provided settings.
+
+Differences from the json config::
+
+picker::: Nix package of the picker.
+
+pickerBinName::: Name of the picker executable. Usually not needed as it's derived from the `picker` setting.
+
+Options for the systemd service in `programs.drugtracker2.systemdIntegration`::
+
+enable::: Enable the service. `True` by default
+
+remindFrequency::: How often to remind. Uses the "onCalendar" format from systemd timers
+
+Example config::
+```nix
+programs.drugtracker2 = {
+  enable = true;
+  columnString = " | ";
+  rowString = "-";
+  picker = pkgs.fzf;
+
+  systemdIntegration = {
+    remindFrequency = "*:0/10:00"; # Remind every 10 minutes
+  };
+};
+```
+
 == Building
 The primary way of building the project is through `nix build`.
 `cabal build` can be used, but results may vary
@@ -89,4 +144,3 @@ The non-flake `nix-shell` is also supported.
 
 == Todo
 * [ ] Add JSON output to `drug remind`
-** [ ] Add JSON configuration
