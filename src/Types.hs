@@ -17,7 +17,7 @@ module Types (
   FileState (FileNotExists, FileEmpty, FileHasContent),
   DrugDefinition (DrugDefinition, getPeriod, getName),
   LinesArg (LinesInt, LinesAll),
-  Command (CmdList, CmdTake, CmdRemind, CmdCreate),
+  Command (CmdList, CmdTake, CmdRemind, CmdCreate, CmdStop, CmdStart),
   Config (Config, columnString, rowString, picker),
   ListArgs (ListArgs, getLines, getDetailed, getUniques),
   Types.Options (Options, optCommand),
@@ -103,6 +103,8 @@ data Command
   | CmdTake
   | CmdRemind
   | CmdCreate DrugDefinition
+  | CmdStop
+  | CmdStart
 
 newtype Options = Options {optCommand :: Command}
 

@@ -17,6 +17,8 @@ parseCommand =
     ( command "take" (info (helper <*> pure CmdTake) (progDesc "Take drug."))
         <> command "list" (info (helper <*> parseList) (progDesc "List previously taken drugs."))
         <> command "create" (info (helper <*> parseCreate) (progDesc "Create a drug item."))
+        <> command "stop" (info (helper <*> pure CmdStop) (progDesc "Stop reminding about drug item."))
+        <> command "start" (info (helper <*> pure CmdStart) (progDesc "Start reminding about drug item."))
         <> command
           "remind"
           ( info
@@ -70,4 +72,6 @@ main = do
     CmdTake -> takeDrug
     CmdList l -> listDrugs l
     CmdRemind -> remind
+    CmdStart -> undefined
+    CmdStop -> undefined
     CmdCreate d -> createDrugItem d

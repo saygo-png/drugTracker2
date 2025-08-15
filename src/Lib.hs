@@ -9,6 +9,7 @@ module Lib (
   loadDrugDefinitions,
   moreThanNSecondsAgo,
   loadDrugData,
+  getDrugDef,
   parseEntriesCSV,
 ) where
 
@@ -19,13 +20,18 @@ import Data.Csv qualified as Cassava
 import Data.Function ((&))
 import Data.Map qualified as M
 import Data.Text qualified as T
+import Data.Text.Encoding qualified as T
+import Data.Text.Lazy qualified as TL
+import Data.Text.Lazy.Encoding qualified as TL
 import Data.Time (TimeZone, diffUTCTime, getCurrentTimeZone, secondsToNominalDiffTime, utcToLocalTime)
 import Data.Vector qualified as V
 import Data.Vector.Algorithms qualified as V
+import LoadConfig
 import Path qualified as P
 import Path.IO (doesFileExist)
 import System.Console.ANSI
 import System.Exit (exitFailure)
+import System.Process.Typed qualified as S
 import TemplateLib
 import Text.Time.Pretty (prettyTimeAuto)
 import Time
@@ -67,6 +73,21 @@ loadRenderLines detailed = do
             relStamp
             absStamp
             $ i + 1
+
+getDrugDef :: IO Text
+getDrugDef = do
+  defs <- loadDrugDefinitions
+  result <- runPicker (picker config) . intercalate "\n" . sort $ getName <$> defs
+  maybe (putStrLn "Invalid input" >> exitFailure) pure result
+  where
+    runPicker finder input = do
+      (exitCode, output, _) <- S.readProcess . pipeIn input $ S.proc finder []
+      case exitCode of
+        S.ExitSuccess -> decode output
+        _ -> pure Nothing
+      where
+        pipeIn = S.setStdin . S.byteStringInput . BL8.fromStrict . T.encodeUtf8
+        decode = pure . Just . TL.toStrict . TL.strip . TL.decodeUtf8
 
 getColorizeRG :: IO (Bool -> Text -> Text)
 getColorizeRG = (. bool Red Green) . ($ Vivid) <$> getColorize
