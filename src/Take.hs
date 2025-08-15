@@ -8,6 +8,7 @@ import Data.Csv qualified as Cassava
 import Data.Text.Encoding qualified as T
 import Data.Text.Lazy qualified as T
 import Data.Text.Lazy.Encoding qualified as TL
+import Data.Time (getCurrentTimeZone)
 import Lib
 import LoadConfig
 import Path qualified as P
@@ -47,8 +48,9 @@ getDrugDef = do
         decode = pure . Just . T.toStrict . T.strip . TL.decodeUtf8
 
 wroteInfo :: DrugLine -> IO ()
-wroteInfo DrugLine{..} =
-  printf "Took \"%s\" on %s\n" getEntryName =<< toPrettyLocalTime getDate
+wroteInfo DrugLine{..} = do
+  lTZ <- getCurrentTimeZone
+  printf "Took \"%s\" on %s\n" getEntryName $ toPrettyLocalTime lTZ getDate
 
 writeWithHeader :: DrugLine -> FilePath -> IO ()
 writeWithHeader drug output =

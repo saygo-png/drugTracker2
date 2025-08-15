@@ -4,8 +4,8 @@ import ClassyPrelude
 import Data.Time (diffUTCTime)
 import Text.Time.Pretty.TimeAgo
 
-dayhourTimeFormat :: UTCTime -> IO String
-dayhourTimeFormat before = customRenderTimeAgo . timeAgo . flip diffUTCTime before <$> getCurrentTime
+dayhourTimeFormat :: UTCTime -> UTCTime -> String
+dayhourTimeFormat now before = customRenderTimeAgo . timeAgo . flip diffUTCTime before $ now
 
 customRenderTimeAgo :: TimeAgo -> String
 customRenderTimeAgo ta =

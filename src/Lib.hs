@@ -19,7 +19,7 @@ import Data.Csv qualified as Cassava
 import Data.Function ((&))
 import Data.Map qualified as M
 import Data.Text qualified as T
-import Data.Time (diffUTCTime, getCurrentTimeZone, secondsToNominalDiffTime, utcToLocalTime)
+import Data.Time (TimeZone, diffUTCTime, getCurrentTimeZone, secondsToNominalDiffTime, utcToLocalTime)
 import Data.Vector qualified as V
 import Data.Vector.Algorithms qualified as V
 import Path qualified as P
@@ -27,7 +27,7 @@ import Path.IO (doesFileExist)
 import System.Console.ANSI
 import System.Exit (exitFailure)
 import TemplateLib
-import Text.Time.Pretty (prettyTimeAutoFromNow)
+import Text.Time.Pretty (prettyTimeAuto)
 import Time
 import Types
 
@@ -35,6 +35,8 @@ loadRenderLines :: Bool -> IO (Vector RenderLine)
 loadRenderLines detailed = do
   drugData <- loadDrugData
   drugDefs <- loadDrugDefinitions
+  now <- getCurrentTime
+  lTZ <- getCurrentTimeZone
 
   let sortedEntries = sortOn (Down . getDate) drugData
       defMap = V.foldr (\dd -> M.insert (getName dd) (getPeriod dd)) M.empty drugDefs
@@ -42,31 +44,29 @@ loadRenderLines detailed = do
 
   if V.null combinedEntries
     then putStrLn "No entries matching existing definitions found!" >> exitFailure
-    else V.imapM constructRenderLine $ reverse combinedEntries
+    else pure . V.imap (constructRenderLine lTZ now) $ reverse combinedEntries
   where
-    dateStampRel date =
-      let f = if detailed then dayhourTimeFormat else prettyTimeAutoFromNow
-       in (<> ",") . T.pack <$> f date
+    dateStampRel now date =
+      let f = if detailed then dayhourTimeFormat now else prettyTimeAuto now
+       in (<> ",") . T.pack $ f date
 
     makeCombinedEntry defMap sortedE i dl = do
       period <- M.lookup (getEntryName dl) defMap
       let isDupe = V.any ((== getEntryName dl) . getEntryName) (V.take i sortedE)
       pure (dl, isDupe, period)
 
-    constructRenderLine i (drugLine, old, period) = do
+    constructRenderLine localTZ now i (drugLine, old, period) =
       let date = getDate drugLine
-      now <- getCurrentTime
-      relStamp <- dateStampRel date
-      absStamp <- toPrettyLocalTime date
-      pure
-        . RenderLine
-          drugLine
-          old
-          (moreThanNSecondsAgo period date now && not old)
-          period
-          relStamp
-          absStamp
-        $ i + 1
+          absStamp = toPrettyLocalTime localTZ date
+          relStamp = dateStampRel now date
+       in RenderLine
+            drugLine
+            old
+            (moreThanNSecondsAgo period date now && not old)
+            period
+            relStamp
+            absStamp
+            $ i + 1
 
 getColorizeRG :: IO (Bool -> Text -> Text)
 getColorizeRG = (. bool Red Green) . ($ Vivid) <$> getColorize
@@ -93,11 +93,10 @@ moreThanNSecondsAgo secs oldTime now =
       secs' = secondsToNominalDiffTime (fromInteger secs)
    in diff > secs'
 
-toPrettyLocalTime :: UTCTime -> IO Text
-toPrettyLocalTime utcTime = do
-  localTZ <- getCurrentTimeZone
+toPrettyLocalTime :: TimeZone -> UTCTime -> Text
+toPrettyLocalTime localTZ utcTime =
   let text = utcToLocalTime localTZ utcTime & tshow
-  takeWhile (/= '.') text & dropEnd 3 & pure
+   in takeWhile (/= '.') text & dropEnd 3
 
 haveYouRanErr :: IO a
 haveYouRanErr = putStrLn "Have you ran \"drug take\"?" >> exitFailure
