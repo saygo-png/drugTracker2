@@ -88,7 +88,7 @@ This program is configured in source code with JSON.
 The keys, defaults and their meanings are listed in https://github.com/saygo-png/drugTracker2/blob/main/src/ParseConfig.hs#L16
 
 Example JSON config::
-```
+```json
 {
   "columnString": " | ",
   "rowString": "-",
