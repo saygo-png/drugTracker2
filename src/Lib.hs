@@ -76,7 +76,7 @@ loadRenderLines detailed = do
             relStamp
             absStamp
             (i + 1)
-            $ reminding
+            reminding
 
 getDrugDef :: IO Text
 getDrugDef = do

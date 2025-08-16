@@ -37,12 +37,14 @@
         passthru.nixpkgs = pkgs;
         buildTools = (old.buildTools or []) ++ [pkgs.makeWrapper];
 
-        configureFlags = (old.configureFlags or []) ++ [
-          "--ghc-options=-O2"
-          "--enable-optimization=2"
-          "--enable-split-sections"
-          "--enable-executable-stripping"
-        ];
+        configureFlags =
+          (old.configureFlags or [])
+          ++ [
+            "--ghc-options=-O2"
+            "--enable-optimization=2"
+            "--enable-split-sections"
+            "--enable-executable-stripping"
+          ];
 
         prePatch =
           (old.prePatch or "")

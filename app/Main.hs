@@ -1,14 +1,14 @@
 module Main where
 
 import ClassyPrelude
-import Types
 import Create
-import List
 import EnableDisable
-import Status
+import List
 import Options.Applicative
 import Remind
+import Status
 import Take
+import Types
 
 parserInfo :: ParserInfo Options
 parserInfo = info (helper <*> parseOptions) (progDesc "Reminds you to take a drug")
