@@ -14,9 +14,9 @@ import Types
 defaultConfig :: Config
 defaultConfig =
   Config
-    { columnString = " | "
-    , rowString = "-"
-    , picker = "fzf"
+    { columnString = " | " -- Text for drawing columns
+    , rowString = "-" -- Text for separating the header from content
+    , picker = "fzf" -- Name of the picker binary to use for different selection menus
     }
 
 loadConfig :: Q Exp
