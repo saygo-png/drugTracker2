@@ -36,7 +36,7 @@ common common-options
 library
   import: common-options
   hs-source-dirs: src, src/commands
-  exposed-modules: List, Enable, Disable, Take, Remind, Create, Status,
+  exposed-modules: List, EnableDisable, Take, Remind, Create, Status,
                    Types, Lib, TemplateLib, Time, ParseConfig, LoadConfig, Table
 
 executable drug

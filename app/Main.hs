@@ -4,9 +4,8 @@ import ClassyPrelude
 import Types
 import Create
 import List
-import Enable
+import EnableDisable
 import Status
-import Disable
 import Options.Applicative
 import Remind
 import Take
