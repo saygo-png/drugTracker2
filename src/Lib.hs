@@ -1,6 +1,7 @@
 module Lib (
   module TemplateLib,
   toPrettyLocalTime,
+  quote,
   getFileState,
   getSafeSetSGRCode,
   getColorize,
@@ -9,7 +10,7 @@ module Lib (
   loadDrugDefinitions,
   moreThanNSecondsAgo,
   loadDrugData,
-  getDrugDef,
+  getDrugNameFromInput,
   parseEntriesCSV,
 ) where
 
@@ -78,8 +79,8 @@ loadRenderLines detailed = do
             (i + 1)
             reminding
 
-getDrugDef :: IO Text
-getDrugDef = do
+getDrugNameFromInput :: IO Text
+getDrugNameFromInput = do
   (defs, _) <- loadDrugDefinitions
   result <- runPicker (picker config) . intercalate "\n" . sort $ getName <$> defs
   maybe (putStrLn "Invalid input" >> exitFailure) pure result
@@ -125,6 +126,9 @@ toPrettyLocalTime localTZ utcTime =
 
 haveYouRanErr :: IO a
 haveYouRanErr = putStrLn "Have you ran \"drug take\"?" >> exitFailure
+
+quote :: Text -> Text
+quote t = "\"" <> t <> "\""
 
 loadDrugDefinitions :: IO (Vector DrugDefinition, P.Path P.Abs P.File)
 loadDrugDefinitions = do
