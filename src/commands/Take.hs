@@ -14,7 +14,7 @@ import Types
 
 takeDrug :: IO ()
 takeDrug = do
-  drug <- liftA2 DrugLine getDrugNameFromInput getCurrentTime
+  drug <- liftA2 DrugLine (getDrugNameFromInputFilter getReminding) getCurrentTime
 
   output <- getCsvEntries
   let fOutput = P.fromAbsFile output

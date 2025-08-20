@@ -10,6 +10,7 @@ module Lib (
   loadDrugDefinitions,
   moreThanNSecondsAgo,
   loadDrugData,
+  getDrugNameFromInputFilter,
   getDrugNameFromInput,
   parseEntriesCSV,
 ) where
@@ -80,17 +81,21 @@ loadRenderLines detailed = do
             reminding
 
 getDrugNameFromInput :: IO Text
-getDrugNameFromInput = do
+getDrugNameFromInput = getDrugNameFromInputFilter (const True)
+
+getDrugNameFromInputFilter :: (DrugDefinition -> Bool) -> IO Text
+getDrugNameFromInputFilter f = do
   (defs, _) <- loadDrugDefinitions
-  result <- runPicker (picker config) . intercalate "\n" . sort $ getName <$> defs
+  result <- runPicker . intercalate "\n" . sort $ getName <$> filter f defs
   maybe (putStrLn "Invalid input" >> exitFailure) pure result
   where
-    runPicker finder input = do
-      (exitCode, output, _) <- S.readProcess . pipeIn input $ S.proc finder []
+    runPicker input = do
+      (exitCode, output, _) <- S.readProcess . pipeIn input $ S.proc pickerBin []
       case exitCode of
         S.ExitSuccess -> decode output
         _ -> pure Nothing
       where
+        pickerBin = picker config
         pipeIn = S.setStdin . S.byteStringInput . BL8.fromStrict . T.encodeUtf8
         decode = pure . Just . TL.toStrict . TL.strip . TL.decodeUtf8
 
