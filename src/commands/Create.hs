@@ -6,7 +6,6 @@ module Create (createDrugItem) where
 import ClassyPrelude
 import Data.ByteString.Char8 qualified as B8
 import Data.Csv qualified as Cassava
-import Data.Function ((&))
 import Data.Vector qualified as V
 import Lib
 import Path qualified as P
@@ -25,15 +24,15 @@ createDrugItem d = do
     FileEmpty -> writeAndLogWith V.empty
     FileHasContent -> do
       (existingDefs, _) <- loadDrugDefinitions
-      let entryExists = any ((== d.getName) . (.getName)) existingDefs
+      let entryExists = any ((== d.name) . (.name)) existingDefs
       when entryExists $ do
-        printf "Definition for \"%s\" already exists\n" d.getName
+        printf "Definition for \"%s\" already exists\n" d.name
         exitFailure
       writeAndLogWith existingDefs
   where
-    wroteInfo DrugDefinition{..} =
-      let period = getPeriod & tshow
-       in printf "Created definition \"%s\" which should be taken every %s seconds\n" getName period
+    wroteInfo dd =
+      let period = tshow dd.period
+       in printf "Created definition \"%s\" which should be taken every %s seconds\n" dd.name period
 
     writeWithHeader :: Vector DrugDefinition -> FilePath -> IO ()
     writeWithHeader drugDefs output =

@@ -14,7 +14,7 @@ import Types
 
 takeDrug :: IO ()
 takeDrug = do
-  drug <- liftA2 DrugLine (getDrugNameFromInputFilter (.getReminding)) getCurrentTime
+  drug <- liftA2 DrugLine (getDrugNameFromInputFilter (.reminding)) getCurrentTime
 
   output <- getCsvEntries
   let fOutput = P.fromAbsFile output
@@ -29,7 +29,7 @@ takeDrug = do
 wroteInfo :: DrugLine -> IO ()
 wroteInfo dl = do
   lTZ <- getCurrentTimeZone
-  printf "Took \"%s\" on %s\n" dl.getEntryName $ toPrettyLocalTime lTZ dl.getDate
+  printf "Took \"%s\" on %s\n" dl.name $ toPrettyLocalTime lTZ dl.date
 
 writeWithHeader :: DrugLine -> FilePath -> IO ()
 writeWithHeader drug output =

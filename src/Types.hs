@@ -6,19 +6,19 @@ module Types (
   definitionsToHeader,
   csvEntriesHT,
   entriesToHeader,
-  DrugLine (DrugLine, getDate, getEntryName),
-  RenderLine (RenderLine, getReminding', getIsMissed, getIndex, getDateRel, getDateAbs, getIsOld, getPeriod', getDrugLine),
+  DrugLine (DrugLine, date, name),
+  RenderLine (RenderLine, reminding, isMissed, index, dateRel, dateAbs, isOld, period, drugLine),
   DefinitionsHeader,
   EntriesHeader,
   -- }}}
   IsMissed,
   IsOld,
   FileState (FileNotExists, FileEmpty, FileHasContent),
-  DrugDefinition (DrugDefinition, getPeriod, getName, getReminding),
+  DrugDefinition (DrugDefinition, period, name, reminding),
   LinesArg (LinesInt, LinesAll),
   Command (CmdList, CmdTake, CmdStatus, CmdRemind, CmdCreate, CmdEnable, CmdDisable),
   Config (Config, columnString, rowString, picker),
-  ListArgs (ListArgs, getLines, getDetailed, getUniques),
+  ListArgs (ListArgs, lines, detailed, uniques),
   Types.Options (Options, optCommand),
 ) where
 
@@ -69,14 +69,14 @@ type IsMissed = Bool
 type IsOld = Bool
 
 data RenderLine = RenderLine
-  { getDrugLine :: DrugLine
-  , getIsOld :: IsOld
-  , getIsMissed :: IsMissed
-  , getPeriod' :: Integer
-  , getDateRel :: Text
-  , getDateAbs :: Text
-  , getIndex :: Int
-  , getReminding' :: Bool
+  { drugLine :: DrugLine
+  , isOld :: IsOld
+  , isMissed :: IsMissed
+  , period :: Integer
+  , dateRel :: Text
+  , dateAbs :: Text
+  , index :: Int
+  , reminding :: Bool
   }
   deriving (Show)
 
@@ -93,9 +93,9 @@ instance Read LinesArg where
         _ -> R.pfail
 
 data ListArgs = ListArgs
-  { getLines :: LinesArg
-  , getDetailed :: Bool
-  , getUniques :: Bool
+  { lines :: LinesArg
+  , detailed :: Bool
+  , uniques :: Bool
   }
 
 data Command
@@ -121,9 +121,9 @@ newtype EntriesHeader = EntriesHeader (ByteString, ByteString)
 
 -- This represents a line of the drugDefinitions.csv file
 data DrugDefinition = DrugDefinition
-  { getName :: Text
-  , getPeriod :: Integer
-  , getReminding :: Bool
+  { name :: Text
+  , period :: Integer
+  , reminding :: Bool
   }
   deriving (Eq, Show)
 
@@ -164,8 +164,8 @@ instance ToField Pico where
 
 -- This represents a line of the data.csv file {{{
 data DrugLine = DrugLine
-  { getEntryName :: Text
-  , getDate :: UTCTime
+  { name :: Text
+  , date :: UTCTime
   }
   deriving (Eq, Show)
 

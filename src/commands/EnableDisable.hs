@@ -10,6 +10,7 @@ import Lib
 import Path qualified as P
 import System.Console.ANSI
 import System.Exit (exitFailure)
+import qualified Types as DD (DrugDefinition(..))
 import Types
 
 enable, disable :: IO ()
@@ -21,12 +22,12 @@ data RecordState = RecordChanged Text | RecordAlreadySet Text | RecordNotMatched
 
 updateDrug :: Bool -> Text -> Text -> DrugDefinition -> (DrugDefinition, RecordState)
 updateDrug targetState actionText inputName drug
-  | not match = (drug, RecordNotMatched $ unwords ["Drug", quote inputName, "is not", quote drug.getName])
+  | not match = (drug, RecordNotMatched $ unwords ["Drug", quote inputName, "is not", quote drug.name])
   | isEnabled == targetState = (drug, RecordAlreadySet $ msg "is already")
-  | otherwise = (drug{getReminding = targetState}, RecordChanged $ msg "has been")
+  | otherwise = (drug{DD.reminding = targetState}, RecordChanged $ msg "has been")
   where
-    match = drug.getName == inputName
-    isEnabled = drug.getReminding
+    match = drug.name == inputName
+    isEnabled = drug.reminding
     msg verb = unwords ["Drug", quote inputName, verb, actionText]
 
 mkToggle :: Bool -> Text -> IO ()

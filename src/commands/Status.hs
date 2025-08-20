@@ -21,7 +21,7 @@ status = do
 
     header = fromList ["Name", "Frequency", "Reminding"]
 
-    getInfo DrugDefinition{..} = RenderContext (StatusContext getReminding) vec
+    getInfo dd = RenderContext (StatusContext dd.reminding) vec
       where
         every p = "Every " <> tshow p <> "s"
-        vec = fromList [getName, every getPeriod, tshow getReminding]
+        vec = fromList [dd.name, every dd.period, tshow dd.reminding]

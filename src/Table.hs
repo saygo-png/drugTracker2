@@ -2,7 +2,7 @@ module Table (
   plainTable,
   colorTableWithJoin,
   colorTable,
-  Table (Table, getTableHeading, getTableRows),
+  Table (Table, heading, rows),
   ContextType (StatusContext, ListContext),
   RenderContext (RenderContext),
 ) where
@@ -29,18 +29,18 @@ type Header = Vector Text
 data ContextType = StatusContext IsReminding | ListContext IsReminding IsOld IsMissed
 
 data Table = Table
-  { getTableHeading :: Vector (Vector Text)
-  , getTableRows :: Vector (RenderContext (Vector Text))
+  { heading :: Vector (Vector Text)
+  , rows :: Vector (RenderContext (Vector Text))
   }
 
 extractRow :: RenderContext Row -> Row
 extractRow (RenderContext _ row) = row
 
 colorTableWithJoin :: (Bool -> Row -> Text) -> (ContextType -> Color) -> Table -> IO Text
-colorTableWithJoin customJoin f Table{..} = do
+colorTableWithJoin customJoin f table = do
   colorize <- getColorize
 
-  let coloredTable = map (customJoin False) getTableHeading <> map colorRow getTableRows
+  let coloredTable = map (customJoin False) table.heading <> map colorRow table.rows
       colorRow r = customJoin True $ colorize Vivid (color r) <$> extractRow r
 
   pure $ intercalate "\n" coloredTable

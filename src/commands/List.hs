@@ -10,14 +10,14 @@ import Table
 import Types
 
 listDrugs :: ListArgs -> IO ()
-listDrugs ListArgs{..} = do
-  rls <- loadRenderLines getDetailed
-  putStrLn =<< prettyTable (handleArgs getLines getUniques rls)
+listDrugs las = do
+  rls <- loadRenderLines las.detailed
+  putStrLn =<< prettyTable (handleArgs las.lines las.uniques rls)
   where
     handleArgs :: LinesArg -> Bool -> Vector RenderLine -> Vector RenderLine
     handleArgs la unique rls =
       if unique
-        then filter (not . (.getIsOld)) rls
+        then filter (not . (.isOld)) rls
         else case la of
           LinesAll -> rls
           LinesInt n -> takeLast n rls
@@ -45,10 +45,10 @@ prettyTable rls = do
                 else config.columnString
          in intercalate delimiter (take 3 cells) <> " " <> unwords (drop 3 cells)
 
-      getInfo rl = RenderContext (ListContext rl.getReminding' rl.getIsOld rl.getIsMissed) vec
+      getInfo rl = RenderContext (ListContext rl.reminding rl.isOld rl.isMissed) vec
         where
-          name = rl.getDrugLine.getEntryName
-          idx = tshow rl.getIndex
-          vec = fromList [idx, name, rl.getDateRel, rl.getDateAbs]
+          name = rl.drugLine.name
+          idx = tshow rl.index
+          vec = fromList [idx, name, rl.dateRel, rl.dateAbs]
 
   colorTableWithJoin customJoin color $ plainTable getInfo header rls
