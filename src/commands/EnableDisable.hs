@@ -21,12 +21,12 @@ data RecordState = RecordChanged Text | RecordAlreadySet Text | RecordNotMatched
 
 updateDrug :: Bool -> Text -> Text -> DrugDefinition -> (DrugDefinition, RecordState)
 updateDrug targetState actionText inputName drug
-  | not match = (drug, RecordNotMatched $ unwords ["Drug", quote inputName, "is not", quote $ getName drug])
+  | not match = (drug, RecordNotMatched $ unwords ["Drug", quote inputName, "is not", quote drug.getName])
   | isEnabled == targetState = (drug, RecordAlreadySet $ msg "is already")
   | otherwise = (drug{getReminding = targetState}, RecordChanged $ msg "has been")
   where
-    match = getName drug == inputName
-    isEnabled = getReminding drug
+    match = drug.getName == inputName
+    isEnabled = drug.getReminding
     msg verb = unwords ["Drug", quote inputName, verb, actionText]
 
 mkToggle :: Bool -> Text -> IO ()

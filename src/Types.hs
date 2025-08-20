@@ -2,13 +2,11 @@
 
 module Types (
   -- Csv {{{
-  getEntryName,
-  getDate,
   csvDefinitionsHT,
   definitionsToHeader,
   csvEntriesHT,
   entriesToHeader,
-  DrugLine (DrugLine),
+  DrugLine (DrugLine, getDate, getEntryName),
   RenderLine (RenderLine, getReminding', getIsMissed, getIndex, getDateRel, getDateAbs, getIsOld, getPeriod', getDrugLine),
   DefinitionsHeader,
   EntriesHeader,

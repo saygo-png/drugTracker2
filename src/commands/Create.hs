@@ -25,9 +25,9 @@ createDrugItem d = do
     FileEmpty -> writeAndLogWith V.empty
     FileHasContent -> do
       (existingDefs, _) <- loadDrugDefinitions
-      let entryExists = any ((== getName d) . getName) existingDefs
+      let entryExists = any ((== d.getName) . (.getName)) existingDefs
       when entryExists $ do
-        printf "Definition for \"%s\" already exists\n" $ getName d
+        printf "Definition for \"%s\" already exists\n" d.getName
         exitFailure
       writeAndLogWith existingDefs
   where

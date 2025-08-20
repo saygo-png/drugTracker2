@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedRecordDot #-}
+
 module Lib (
   module TemplateLib,
   toPrettyLocalTime,
@@ -46,7 +48,7 @@ loadRenderLines detailed = do
   now <- getCurrentTime
   lTZ <- getCurrentTimeZone
 
-  let sortedEntries = sortOn (Down . getDate) drugData
+  let sortedEntries = sortOn (Down . (.getDate)) drugData
       defMap = V.foldr insertData M.empty drugDefs
         where
           insertData DrugDefinition{..} =
@@ -62,12 +64,12 @@ loadRenderLines detailed = do
        in (<> ",") . T.pack $ f date
 
     makeCombinedEntry defMap sortedE i dl = do
-      (period, reminding) <- M.lookup (getEntryName dl) defMap
-      let isDupe = V.any ((== getEntryName dl) . getEntryName) (V.take i sortedE)
+      (period, reminding) <- M.lookup dl.getEntryName defMap
+      let isDupe = V.any ((== dl.getEntryName) . (.getEntryName)) (V.take i sortedE)
       pure (dl, isDupe, period, reminding)
 
     constructRenderLine localTZ now i (drugLine, old, period, reminding) =
-      let date = getDate drugLine
+      let date = drugLine.getDate
           absStamp = toPrettyLocalTime localTZ date
           relStamp = dateStampRel now date
        in RenderLine
@@ -86,7 +88,7 @@ getDrugNameFromInput = getDrugNameFromInputFilter (const True)
 getDrugNameFromInputFilter :: (DrugDefinition -> Bool) -> IO Text
 getDrugNameFromInputFilter f = do
   (defs, _) <- loadDrugDefinitions
-  result <- runPicker . intercalate "\n" . sort $ getName <$> filter f defs
+  result <- runPicker . intercalate "\n" . sort $ (.getName) <$> filter f defs
   maybe (putStrLn "Invalid input" >> exitFailure) pure result
   where
     runPicker input = do
@@ -95,7 +97,7 @@ getDrugNameFromInputFilter f = do
         S.ExitSuccess -> decode output
         _ -> pure Nothing
       where
-        pickerBin = picker config
+        pickerBin = config.picker
         pipeIn = S.setStdin . S.byteStringInput . BL8.fromStrict . T.encodeUtf8
         decode = pure . Just . TL.toStrict . TL.strip . TL.decodeUtf8
 
@@ -145,7 +147,7 @@ loadDrugDefinitions = do
       fileData <- BL8.fromStrict <$> B8.readFile (P.fromAbsFile csvFile)
       case parseCSV fileData of
         Left t -> terror t
-        Right v -> pure (V.nubBy (comparing getName) v, csvFile)
+        Right v -> pure (V.nubBy (comparing (.getName)) v, csvFile)
       where
         parseCSV fileData =
           case Cassava.decodeByName @DrugDefinition fileData of

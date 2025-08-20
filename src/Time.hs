@@ -9,23 +9,23 @@ dayhourTimeFormat now before = customRenderTimeAgo . timeAgo . flip diffUTCTime 
 
 customRenderTimeAgo :: TimeAgo -> String
 customRenderTimeAgo ta =
-  case timeAgoSign ta of
+  case ta.timeAgoSign of
     GT -> customRender True ta -- x ago
     EQ -> "just now"
     LT -> customRender False ta -- In x
 
 customRender :: Bool -> TimeAgo -> String
-customRender agoOrIn TimeAgo{..}
-  | timeAgoDays > 0 = showDaysAndHours timeAgoDays timeAgoHours
-  | timeAgoHours > 0 = unwordNoEmpty [prefix, plural timeAgoHours "hour", suffix]
-  | timeAgoMinutes > 0 = unwordNoEmpty [prefix, plural timeAgoMinutes "minute", suffix]
-  | timeAgoSeconds > 0 = unwordNoEmpty [prefix, plural timeAgoSeconds "second", suffix]
+customRender agoOrIn ta
+  | timeAgoDays > 0 = showDaysAndHours timeAgoDays ta.timeAgoHours
+  | ta.timeAgoHours > 0 = unwordNoEmpty [prefix, plural ta.timeAgoHours "hour", suffix]
+  | ta.timeAgoMinutes > 0 = unwordNoEmpty [prefix, plural ta.timeAgoMinutes "minute", suffix]
+  | ta.timeAgoSeconds > 0 = unwordNoEmpty [prefix, plural ta.timeAgoSeconds "second", suffix]
   | otherwise = "just now"
   where
     suffix = if agoOrIn then "ago" else ""
     prefix = if agoOrIn then "" else "in"
 
-    timeAgoDays = daysAgoToDays timeAgoDaysAgo
+    timeAgoDays = daysAgoToDays ta.timeAgoDaysAgo
 
     unwordNoEmpty = unwords . filter (/= "")
 

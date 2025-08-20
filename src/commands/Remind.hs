@@ -9,21 +9,21 @@ import Types
 remind :: IO ()
 remind = do
   renderLines <- loadRenderLines False
-  let forReminding = filter (liftA2 (&&) (not . getIsOld) getReminding') renderLines
+  let forReminding = filter (liftA2 (&&) (not . (.getIsOld)) (.getReminding')) renderLines
   mapM_ outputRemindInfo forReminding
   when (null forReminding) $ putStrLn "No definitions to show!"
-  bool exitSuccess exitFailure $ any (liftA2 (&&) getIsMissed getReminding') renderLines
+  bool exitSuccess exitFailure $ any (liftA2 (&&) (.getIsMissed) (.getReminding')) renderLines
   where
     outputRemindInfo :: RenderLine -> IO ()
-    outputRemindInfo RenderLine{..} = do
-      let mNot = bool "" "not " getIsMissed
+    outputRemindInfo rl = do
+      let mNot = bool "" "not " rl.getIsMissed
 
-          name = getEntryName getDrugLine <> ":"
+          name = rl.getDrugLine.getEntryName <> ":"
           takenOrNot = mNot <> "taken in the last"
-          msg = unwords [name, takenOrNot, tshow getPeriod', "seconds"]
+          msg = unwords [name, takenOrNot, tshow rl.getPeriod', "seconds"]
           sendNotification t = runProcess_ . proc "notify-send" $ [unpack t]
 
       colorizeRG <- getColorizeRG
-      let colored = colorizeRG (not getIsMissed) msg
+      let colored = colorizeRG (not rl.getIsMissed) msg
       putStrLn colored
-      when getIsMissed $ sendNotification msg
+      when rl.getIsMissed $ sendNotification msg

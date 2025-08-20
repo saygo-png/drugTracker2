@@ -17,7 +17,7 @@ listDrugs ListArgs{..} = do
     handleArgs :: LinesArg -> Bool -> Vector RenderLine -> Vector RenderLine
     handleArgs la unique rls =
       if unique
-        then filter (not . getIsOld) rls
+        then filter (not . (.getIsOld)) rls
         else case la of
           LinesAll -> rls
           LinesInt n -> takeLast n rls
@@ -41,14 +41,14 @@ prettyTable rls = do
       customJoin useColor cells =
         let delimiter =
               if useColor
-                then safeSetSGRCode [SetDefaultColor Foreground] <> columnString config
-                else columnString config
+                then safeSetSGRCode [SetDefaultColor Foreground] <> config.columnString
+                else config.columnString
          in intercalate delimiter (take 3 cells) <> " " <> unwords (drop 3 cells)
 
-      getInfo RenderLine{..} = RenderContext (ListContext getReminding' getIsOld getIsMissed) vec
+      getInfo rl = RenderContext (ListContext rl.getReminding' rl.getIsOld rl.getIsMissed) vec
         where
-          name = getEntryName getDrugLine
-          idx = tshow getIndex
-          vec = fromList [idx, name, getDateRel, getDateAbs]
+          name = rl.getDrugLine.getEntryName
+          idx = tshow rl.getIndex
+          vec = fromList [idx, name, rl.getDateRel, rl.getDateAbs]
 
   colorTableWithJoin customJoin color $ plainTable getInfo header rls

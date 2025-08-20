@@ -72,7 +72,7 @@ parseOptions = Options <$> parseCommand
 main :: IO ()
 main = do
   options <- execParser parserInfo
-  case optCommand options of
+  case options.optCommand of
     CmdTake -> takeDrug
     CmdList l -> listDrugs l
     CmdRemind -> remind

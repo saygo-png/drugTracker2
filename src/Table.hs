@@ -55,8 +55,8 @@ colorTable f table = do
       customJoin doColor cell =
         let delimiter =
               if doColor
-                then safeSetSGRCode [SetDefaultColor Foreground] <> columnString config
-                else columnString config
+                then safeSetSGRCode [SetDefaultColor Foreground] <> config.columnString
+                else config.columnString
          in intercalate delimiter cell
 
   colorTableWithJoin customJoin f table
@@ -68,9 +68,9 @@ plainTable mkRow header elems =
     allRows = header `cons` fmap extractRow rows
 
     padRow = V.imap (padFromRows allRows)
-    joinCols = intercalate $ columnString config
+    joinCols = intercalate config.columnString
 
-    separator = singleton $ T.replicate separatorLength $ rowString config
+    separator = singleton $ T.replicate separatorLength config.rowString
       where
         separatorLength = on max length (joinCols headerPadded) firstRowFormatted
         firstRowFormatted = case headMay (fmap extractRow rows) of
