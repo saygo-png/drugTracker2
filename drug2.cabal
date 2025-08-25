@@ -30,18 +30,12 @@ common common-options
     pretty-relative-time
 
   default-language: GHC2021
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   default-extensions: NoImplicitPrelude NoFieldSelectors OverloadedRecordDot DuplicateRecordFields BangPatterns BinaryLiterals ConstraintKinds DataKinds DefaultSignatures DeriveDataTypeable DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable DoAndIfThenElse EmptyDataDecls ExistentialQuantification FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NamedFieldPuns OverloadedStrings PartialTypeSignatures PatternGuards PolyKinds RankNTypes ScopedTypeVariables StandaloneDeriving TupleSections TypeFamilies TypeSynonymInstances ViewPatterns
-
-library
-  import: common-options
-  hs-source-dirs: src, src/commands
-  exposed-modules: List, EnableDisable, Take, Remind, Create, Status,
-                   Types, Lib, TemplateLib, Time, ParseConfig, LoadConfig, Table
 
 executable drug
   import: common-options
-  ghc-options: -rtsopts -with-rtsopts=-N
-  hs-source-dirs: app
+  hs-source-dirs: . src src/commands
+  other-modules: List, EnableDisable, Take, Remind, Create, Status,
+                 Types, Lib, TemplateLib, Time, ParseConfig, LoadConfig, Table
   main-is: Main.hs
-  build-depends: drug2
