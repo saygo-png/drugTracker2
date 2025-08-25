@@ -3,6 +3,7 @@ module Main (main) where
 import ClassyPrelude
 import Create
 import EnableDisable
+import Json
 import List
 import Options.Applicative
 import Remind
@@ -20,17 +21,23 @@ parseCommand =
         <> command "list" (info (helper <*> parseList) (progDesc "List previously taken drugs."))
         <> command "create" (info (helper <*> parseCreate) (progDesc "Create a drug item."))
         <> command "disable" (info (helper <*> pure CmdDisable) (progDesc "Stop reminding about drug item."))
+        <> command "json" (info (helper <*> (CmdJson <$> detailedSwitch)) (progDesc "Output all rendering data as JSON."))
         <> command "status" (info (helper <*> pure CmdStatus) (progDesc "Show status of drug entries."))
         <> command "enable" (info (helper <*> pure CmdEnable) (progDesc "Start reminding about drug item."))
-        <> command
-          "remind"
-          ( info
-              (helper <*> pure CmdRemind)
-              ( progDesc
-                  "Check last taken time, remind if enough time elapsed since. \
-                  \ Returns 0 for don't remind. Returns 1 for yes, remind."
-              )
-          )
+        <> command "remind" (info (helper <*> pure CmdRemind) remindDescription)
+    )
+  where
+    remindDescription =
+      progDesc
+        "Check last taken time, remind if enough time elapsed since. \
+        \ Returns 0 for don't remind. Returns 1 for yes, remind."
+
+detailedSwitch :: Parser Bool
+detailedSwitch =
+  switch
+    ( long "detailed"
+        <> short 'd'
+        <> help "EXPERIMENTAL: Display time with day and hour level of detail"
     )
 
 parseCreate :: Parser Command
@@ -54,11 +61,7 @@ parseList =
                   <> help "How many lines from the end to show"
                   <> value (LinesInt 14)
               )
-            <*> switch
-              ( long "detailed"
-                  <> short 'd'
-                  <> help "EXPERIMENTAL: Display time with day and hour level of detail"
-              )
+            <*> detailedSwitch
             <*> switch
               ( long "unique"
                   <> short 'u'
@@ -79,4 +82,5 @@ main = do
     CmdEnable -> enable
     CmdDisable -> disable
     CmdStatus -> status
+    CmdJson b -> outputJson b
     CmdCreate d -> createDrugItem d

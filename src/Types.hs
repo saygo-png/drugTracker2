@@ -16,7 +16,7 @@ module Types (
   FileState (FileNotExists, FileEmpty, FileHasContent),
   DrugDefinition (DrugDefinition, period, name, reminding),
   LinesArg (LinesInt, LinesAll),
-  Command (CmdList, CmdTake, CmdStatus, CmdRemind, CmdCreate, CmdEnable, CmdDisable),
+  Command (CmdList, CmdJson, CmdTake, CmdStatus, CmdRemind, CmdCreate, CmdEnable, CmdDisable),
   Config (Config, columnString, rowString, picker),
   ListArgs (ListArgs, lines, detailed, uniques),
   Types.Options (Options, optCommand),
@@ -80,6 +80,22 @@ data RenderLine = RenderLine
   }
   deriving stock (Show)
 
+instance J.ToJSON RenderLine where
+  toJSON rl =
+    J.object
+      [ "name" J..= dl.name
+      , "takenDate" J..= dl.date
+      , "isOld" J..= rl.isOld
+      , "isMissed" J..= rl.isMissed
+      , "frequency" J..= rl.period
+      , "dateRelative" J..= rl.dateRel
+      , "dateAbsolute" J..= rl.dateAbs
+      , "index" J..= rl.index
+      , "enabled" J..= rl.reminding
+      ]
+    where
+      dl = rl.drugLine
+
 data LinesArg where
   LinesInt :: Int -> LinesArg
   LinesAll :: LinesArg
@@ -105,6 +121,7 @@ data Command where
   CmdTake :: Command
   CmdStatus :: Command
   CmdRemind :: Command
+  CmdJson :: Bool -> Command
   CmdCreate :: DrugDefinition -> Command
   CmdDisable :: Command
   CmdEnable :: Command
