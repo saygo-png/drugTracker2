@@ -64,8 +64,8 @@ colorTable f table = do
 plainTable :: (a -> RenderContext Row) -> Header -> Vector a -> Table
 plainTable mkRow header elems =
   let
-    rows = fmap mkRow elems
-    allRows = header `cons` fmap extractRow rows
+    rows = map mkRow elems
+    allRows = header `cons` map extractRow rows
 
     padRow = V.imap (padFromRows allRows)
     joinCols = intercalate config.columnString
@@ -73,12 +73,12 @@ plainTable mkRow header elems =
     separator = singleton $ T.replicate separatorLength config.rowString
       where
         separatorLength = on max length (joinCols headerPadded) firstRowFormatted
-        firstRowFormatted = case headMay (fmap extractRow rows) of
+        firstRowFormatted = case headMay (map extractRow rows) of
           Just row -> joinCols (padRow row)
           Nothing -> ""
 
     headerPadded = padRow header
-    paddedRows = fmap (fmap padRow) rows
+    paddedRows = map (map padRow) rows
 
     heading = cons headerPadded $ singleton separator
    in
