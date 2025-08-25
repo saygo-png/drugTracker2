@@ -28,7 +28,8 @@ prettyTable :: Vector RenderLine -> IO Text
 prettyTable rls = do
   safeSetSGRCode <- getSafeSetSGRCode
 
-  let header = fromList ["Nr", "Name", "Date"]
+  let header :: Vector Text
+      header = fromList ["Nr", "Name", "Date"]
 
       color (StatusContext _) = White
       color (ListContext isEnabled isOld isMissed)

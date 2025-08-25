@@ -1,4 +1,4 @@
-module Remind where
+module Remind (remind) where
 
 import ClassyPrelude
 import Lib

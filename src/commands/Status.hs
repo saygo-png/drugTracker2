@@ -19,6 +19,7 @@ status = do
     colorExample (StatusContext True) = Green
     colorExample (StatusContext False) = Red
 
+    header :: Vector Text
     header = fromList ["Name", "Frequency", "Reminding"]
 
     getInfo dd = RenderContext (StatusContext dd.reminding) vec

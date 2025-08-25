@@ -90,6 +90,7 @@ getDrugNameFromInputFilter f = do
   result <- runPicker . intercalate "\n" . sort $ (.name) <$> filter f defs
   maybe (putStrLn "Invalid input" >> exitFailure) pure result
   where
+    runPicker :: Text -> IO (Maybe Text)
     runPicker input = do
       (exitCode, output, _) <- S.readProcess . pipeIn input $ S.proc pickerBin []
       case exitCode of
@@ -98,6 +99,8 @@ getDrugNameFromInputFilter f = do
       where
         pickerBin = config.picker
         pipeIn = S.setStdin . S.byteStringInput . BL8.fromStrict . T.encodeUtf8
+
+        decode :: BL8.ByteString -> IO (Maybe T.StrictText)
         decode = pure . Just . TL.toStrict . TL.strip . TL.decodeUtf8
 
 getColorizeRG :: IO (Bool -> Text -> Text)

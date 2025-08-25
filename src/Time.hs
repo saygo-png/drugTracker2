@@ -27,6 +27,7 @@ customRender agoOrIn ta
 
     timeAgoDays = daysAgoToDays ta.timeAgoDaysAgo
 
+    unwordNoEmpty :: [String] -> Element [String]
     unwordNoEmpty = unwords . filter (/= "")
 
     showDaysAndHours days hours =

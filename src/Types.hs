@@ -55,7 +55,7 @@ data Config = Config
   , rowString :: Text
   , picker :: String
   }
-  deriving (Show, Lift)
+  deriving stock (Show, Lift)
 
 instance J.FromJSON Config where
   parseJSON = J.withObject "Config" $ \o ->
@@ -78,10 +78,12 @@ data RenderLine = RenderLine
   , index :: Int
   , reminding :: Bool
   }
-  deriving (Show)
+  deriving stock (Show)
 
-data LinesArg = LinesInt Int | LinesAll
-  deriving (Eq, Show)
+data LinesArg where
+  LinesInt :: Int -> LinesArg
+  LinesAll :: LinesArg
+  deriving stock (Eq, Show)
 
 instance Read LinesArg where
   readPrec =
@@ -98,21 +100,21 @@ data ListArgs = ListArgs
   , uniques :: Bool
   }
 
-data Command
-  = CmdList ListArgs
-  | CmdTake
-  | CmdStatus
-  | CmdRemind
-  | CmdCreate DrugDefinition
-  | CmdDisable
-  | CmdEnable
+data Command where
+  CmdList :: ListArgs -> Command
+  CmdTake :: Command
+  CmdStatus :: Command
+  CmdRemind :: Command
+  CmdCreate :: DrugDefinition -> Command
+  CmdDisable :: Command
+  CmdEnable :: Command
 
 newtype Options = Options {optCommand :: Command}
 
 -- IO
 
 data FileState = FileNotExists | FileEmpty | FileHasContent
-  deriving (Eq)
+  deriving stock (Eq)
 
 -- CSV
 newtype DefinitionsHeader = DefinitionsHeader (ByteString, ByteString, ByteString)
@@ -125,7 +127,7 @@ data DrugDefinition = DrugDefinition
   , period :: Integer
   , reminding :: Bool
   }
-  deriving (Eq, Show)
+  deriving stock (Eq, Show)
 
 instance ToNamedRecord DrugDefinition where
   toNamedRecord (DrugDefinition a b c) =
@@ -167,7 +169,7 @@ data DrugLine = DrugLine
   { name :: Text
   , date :: UTCTime
   }
-  deriving (Eq, Show)
+  deriving stock (Eq, Show)
 
 instance FromNamedRecord DrugLine where
   parseNamedRecord r =

@@ -17,8 +17,10 @@ import LoadConfig
 import System.Console.ANSI
 import Types
 
+type role RenderContext nominal
+
 data RenderContext a = RenderContext ContextType a
-  deriving (Functor)
+  deriving stock (Functor)
 
 type IsReminding = Bool
 
@@ -68,6 +70,8 @@ plainTable mkRow header elems =
     allRows = header `cons` map extractRow rows
 
     padRow = V.imap (padFromRows allRows)
+
+    joinCols :: Vector Text -> Element (Vector Text)
     joinCols = intercalate config.columnString
 
     separator = singleton $ T.replicate separatorLength config.rowString

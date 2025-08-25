@@ -10,15 +10,18 @@ import Lib
 import Path qualified as P
 import System.Console.ANSI
 import System.Exit (exitFailure)
-import qualified Types as DD (DrugDefinition(..))
+import Types qualified as DD (DrugDefinition(..))
 import Types
 
 enable, disable :: IO ()
 enable = mkToggle True "enabled"
 disable = mkToggle False "disabled"
 
-data RecordState = RecordChanged Text | RecordAlreadySet Text | RecordNotMatched Text
-  deriving (Eq)
+data RecordState where
+  RecordChanged :: Text -> RecordState
+  RecordAlreadySet :: Text -> RecordState
+  RecordNotMatched :: Text -> RecordState
+  deriving stock (Eq)
 
 updateDrug :: Bool -> Text -> Text -> DrugDefinition -> (DrugDefinition, RecordState)
 updateDrug targetState actionText inputName drug
