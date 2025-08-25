@@ -25,7 +25,6 @@ common common-options
     path,
     time,
     containers,
-    unix,
     classy-prelude,
     pretty-relative-time
 
