@@ -4,7 +4,6 @@ module List (
 
 import ClassyPrelude
 import Lib
-import LoadConfig
 import System.Console.ANSI
 import Table
 import Types
@@ -26,10 +25,8 @@ listDrugs las = do
 
 prettyTable :: Vector RenderLine -> IO Text
 prettyTable rls = do
-  safeSetSGRCode <- getSafeSetSGRCode
-
-  let header :: Vector Text
-      header = fromList ["Nr", "Name", "Date"]
+  let header :: Row
+      header = Row $ fromList ["Nr", "Name", "Date"]
 
       color (StatusContext _) = White
       color (ListContext isEnabled isOld isMissed)
@@ -39,17 +36,12 @@ prettyTable rls = do
         | not isMissed = Green
         | otherwise = White
 
-      customJoin useColor cells =
-        let delimiter =
-              if useColor
-                then safeSetSGRCode [SetDefaultColor Foreground] <> config.columnString
-                else config.columnString
-         in intercalate delimiter (take 3 cells) <> " " <> unwords (drop 3 cells)
-
-      getInfo rl = RenderContext (ListContext rl.reminding rl.isOld rl.isMissed) vec
+      getInfo :: RenderLine -> RenderContext SemiRow
+      getInfo rl = RenderContext (ListContext rl.reminding rl.isOld rl.isMissed) row
         where
-          name = rl.drugLine.name
-          idx = tshow rl.index
-          vec = fromList [idx, name, rl.dateRel, rl.dateAbs]
+          name = PureCell rl.drugLine.name
+          idx = PureCell $ tshow rl.index
+          date = SemiCell $ fromList [rl.dateRel, rl.dateAbs]
+          row = SemiRow $ fromList [idx, name, date]
 
-  colorTableWithJoin customJoin color $ plainTable getInfo header rls
+  colorTable color $ plainTable getInfo header rls

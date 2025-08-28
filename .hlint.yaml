@@ -1,0 +1,11 @@
+# HLint configuration file
+# https://github.com/ndmitchell/hlint
+#####################################
+
+- arguments: [-XNoImplicitPrelude, -XNoFieldSelectors, -XOverloadedRecordDot, -XDuplicateRecordFields, -XBangPatterns, -XBinaryLiterals, -XConstraintKinds, -XDataKinds, -XDefaultSignatures, -XDeriveDataTypeable, -XDeriveFoldable, -XDeriveFunctor, -XDeriveGeneric, -XDeriveTraversable, -XDoAndIfThenElse, -XEmptyDataDecls, -XExistentialQuantification, -XFlexibleContexts, -XFlexibleInstances, -XFunctionalDependencies, -XGADTs, -XGeneralizedNewtypeDeriving, -XInstanceSigs, -XKindSignatures, -XLambdaCase, -XMultiParamTypeClasses, -XMultiWayIf, -XNamedFieldPuns, -XOverloadedStrings, -XPartialTypeSignatures, -XPatternGuards, -XPolyKinds, -XRankNTypes, -XScopedTypeVariables, -XStandaloneDeriving, -XTupleSections, -XTypeFamilies, -XTypeSynonymInstances, -XViewPatterns, -XDerivingStrategies, -XRoleAnnotations]
+
+- group: {name: future, enabled: true}
+- group: {name: use-th-quotes, enabled: true}
+- group: {name: generalise-for-conciseness, enabled: true}
+- group: {name: dollar, enabled: true}
+- group: {name: teaching, enabled: true}

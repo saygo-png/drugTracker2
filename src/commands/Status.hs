@@ -19,10 +19,10 @@ status = do
     colorExample (StatusContext True) = Green
     colorExample (StatusContext False) = Red
 
-    header :: Vector Text
-    header = fromList ["Name", "Frequency", "Reminding"]
+    header :: Row
+    header = Row $ fromList ["Name", "Frequency", "Reminding"]
 
-    getInfo dd = RenderContext (StatusContext dd.reminding) vec
+    getInfo dd = RenderContext (StatusContext dd.reminding) row
       where
         every p = "Every " <> tshow p <> "s"
-        vec = fromList [dd.name, every dd.period, tshow dd.reminding]
+        row = SemiRow . map PureCell $ fromList [dd.name, every dd.period, tshow dd.reminding]

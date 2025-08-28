@@ -4,6 +4,7 @@ module Lib (
   module TemplateLib,
   toPrettyLocalTime,
   quote,
+  under,
   getFileState,
   getSafeSetSGRCode,
   getColorize,
@@ -14,6 +15,7 @@ module Lib (
   loadDrugData,
   getDrugNameFromInputFilter,
   getDrugNameFromInput,
+  (!?!),
   parseEntriesCSV,
 ) where
 
@@ -40,6 +42,13 @@ import TemplateLib
 import Text.Time.Pretty (prettyTimeAuto)
 import Time
 import Types
+import Data.Coerce (Coercible, coerce)
+
+(!?!) :: V.Vector a -> (Int, a) -> a
+v !?! (i, def) = fromMaybe def (v V.!? i)
+
+under :: Coercible a b => (b -> b) -> a -> a
+under = coerce
 
 loadRenderLines :: Bool -> IO (Vector RenderLine)
 loadRenderLines detailed = do

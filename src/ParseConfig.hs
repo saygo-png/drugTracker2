@@ -31,4 +31,4 @@ loadConfig = do
         Right (cfg :: Config) -> TH.lift cfg
     else do
       reportWarning "config.json not found, using default configuration"
-      [|defaultConfig|]
+      TH.lift defaultConfig
