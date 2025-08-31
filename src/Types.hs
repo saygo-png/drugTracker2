@@ -12,6 +12,7 @@ module Types (
   EntriesHeader,
   -- }}}
   IsMissed,
+  IsReminding,
   IsOld,
   FileState (FileNotExists, FileEmpty, FileHasContent),
   DrugDefinition (DrugDefinition, period, name, reminding),
@@ -67,6 +68,8 @@ instance J.FromJSON Config where
 type IsMissed = Bool
 
 type IsOld = Bool
+
+type IsReminding = Bool
 
 data RenderLine = RenderLine
   { drugLine :: DrugLine
