@@ -36,7 +36,7 @@ import LoadConfig
 import Path qualified as P
 import Path.IO (doesFileExist)
 import System.Console.ANSI
-import System.Exit (exitFailure)
+import System.Exit (exitFailure, die)
 import System.Process.Typed qualified as S
 import TemplateLib
 import Text.Time.Pretty (prettyTimeAuto)
@@ -64,7 +64,7 @@ loadRenderLines detailed = do
       combinedEntries = V.imapMaybe (makeCombinedEntry defMap sortedEntries) sortedEntries
 
   if V.null combinedEntries
-    then putStrLn "No entries matching existing definitions found!" >> exitFailure
+    then die "No entries matching existing definitions found!"
     else pure . V.imap (constructRenderLine lTZ now) $ reverse combinedEntries
   where
     dateStampRel now date =
@@ -97,7 +97,7 @@ getDrugNameFromInputFilter :: (DrugDefinition -> Bool) -> IO Text
 getDrugNameFromInputFilter f = do
   (defs, _) <- loadDrugDefinitions
   result <- runPicker . intercalate "\n" . sort $ (.name) <$> filter f defs
-  maybe (putStrLn "Invalid input" >> exitFailure) pure result
+  maybe (die "Invalid input") pure result
   where
     runPicker :: Text -> IO (Maybe Text)
     runPicker input = do
@@ -143,7 +143,7 @@ toPrettyLocalTime localTZ utcTime =
    in takeWhile (/= '.') text & dropEnd 3
 
 haveYouRanErr :: IO a
-haveYouRanErr = putStrLn "Have you ran \"drug take\"?" >> exitFailure
+haveYouRanErr = die "Have you ran \"drug take\"?"
 
 quote :: Text -> Text
 quote t = "\"" <> t <> "\""
