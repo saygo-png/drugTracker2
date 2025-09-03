@@ -16,12 +16,12 @@ module Lib (
   getDrugNameFromInputFilter,
   getDrugNameFromInput,
   (!?!),
-  parseEntriesCSV,
 ) where
 
 import ClassyPrelude
 import Data.ByteString.Char8 qualified as B8
 import Data.ByteString.Lazy.Char8 qualified as BL8
+import Data.Coerce (Coercible, coerce)
 import Data.Csv qualified as Cassava
 import Data.Function ((&))
 import Data.Map qualified as M
@@ -36,18 +36,17 @@ import LoadConfig
 import Path qualified as P
 import Path.IO (doesFileExist)
 import System.Console.ANSI
-import System.Exit (exitFailure, die)
+import System.Exit (die)
 import System.Process.Typed qualified as S
 import TemplateLib
 import Text.Time.Pretty (prettyTimeAuto)
 import Time
 import Types
-import Data.Coerce (Coercible, coerce)
 
 (!?!) :: V.Vector a -> (Int, a) -> a
 v !?! (i, def) = fromMaybe def (v V.!? i)
 
-under :: Coercible a b => (b -> b) -> a -> a
+under :: (Coercible a b) => (b -> b) -> a -> a
 under = coerce
 
 loadRenderLines :: Bool -> IO (Vector RenderLine)
@@ -142,9 +141,6 @@ toPrettyLocalTime localTZ utcTime =
   let text = utcToLocalTime localTZ utcTime & tshow
    in takeWhile (/= '.') text & dropEnd 3
 
-haveYouRanErr :: IO a
-haveYouRanErr = die "Have you ran \"drug take\"?"
-
 quote :: Text -> Text
 quote t = "\"" <> t <> "\""
 
@@ -152,36 +148,42 @@ loadDrugDefinitions :: IO (Vector DrugDefinition, P.Path P.Abs P.File)
 loadDrugDefinitions = do
   csvFile <- getCsvDrugDefinitions
   getFileState csvFile >>= \case
-    FileNotExists -> haveYouRanErr
-    FileEmpty -> haveYouRanErr
+    FileNotExists -> haveYouRanCreateErr
+    FileEmpty -> haveYouRanCreateErr
     FileHasContent -> do
       fileData <- BL8.fromStrict <$> B8.readFile (P.fromAbsFile csvFile)
       case parseCSV fileData of
         Left t -> terror t
-        Right v -> pure (V.nubBy (comparing (.name)) v, csvFile)
+        Right v ->
+          let
+            uniques = (V.nubBy (comparing (.name)) v, csvFile)
+           in
+            bool haveYouRanCreateErr (pure uniques) (null uniques)
       where
         parseCSV fileData =
           case Cassava.decodeByName @DrugDefinition fileData of
             Left e -> Left $ "Error reading database " <> T.pack e
             Right (_, vec) -> Right vec
+  where
+    haveYouRanCreateErr = die "No definitions found. Have you ran \"drug create\"?"
 
 loadDrugData :: IO (Vector DrugLine)
 loadDrugData = do
   csvFile <- getCsvEntries
   getFileState csvFile >>= \case
-    FileNotExists -> haveYouRanErr
-    FileEmpty -> haveYouRanErr
+    FileNotExists -> haveYouRanTakeErr
+    FileEmpty -> haveYouRanTakeErr
     FileHasContent -> do
       fileData <- BL8.fromStrict <$> B8.readFile (P.fromAbsFile csvFile)
       case parseEntriesCSV fileData of
         Left t -> terror t
         Right v -> pure v
-
-parseEntriesCSV :: BL8.ByteString -> Either Text (Vector DrugLine)
-parseEntriesCSV fileData =
-  case Cassava.decodeByName @DrugLine fileData of
-    Left e -> Left $ "Error reading database " <> T.pack e
-    Right (_, vec) -> Right vec
+  where
+    haveYouRanTakeErr = die "No entries found. Have you ran \"drug take\"?"
+    parseEntriesCSV fileData =
+      case Cassava.decodeByName @DrugLine fileData of
+        Left e -> Left $ "Error reading database " <> T.pack e
+        Right (_, vec) -> Right vec
 
 getFileState :: P.Path P.Abs P.File -> IO FileState
 getFileState path = do
