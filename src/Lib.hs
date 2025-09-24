@@ -158,7 +158,7 @@ loadDrugDefinitions = do
           let
             uniques = (V.nubBy (comparing (.name)) v, csvFile)
            in
-            bool haveYouRanCreateErr (pure uniques) (null uniques)
+            bool (pure uniques) haveYouRanCreateErr (null uniques)
       where
         parseCSV fileData =
           case Cassava.decodeByName @DrugDefinition fileData of
