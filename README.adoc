@@ -19,6 +19,8 @@ What does it actually do?
 * Periodically reminds you about pills you forgot to take using Freedesktop notifications
 * Stores data in a simple CSV file, following the XDG Base Directory Specification
 
+image::misc/screenshot.png[Screenshot of the application]
+
 [WARNING]
 ====
 This program is new and experimental. I'm also inexperienced as a developer.
