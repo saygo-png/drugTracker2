@@ -1,53 +1,24 @@
-name: Update Nix Flake
+name: "Flake.lock: update Nix dependencies"
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: '0 0 * * 0' # runs weekly on Sunday at 00:00
-  workflow_dispatch: # Allow manual triggering
-
-permissions:
-  contents: write
 
 jobs:
-  update-flake:
+  nix-flake-update:
+    permissions:
+      contents: write
+      id-token: write
+      issues: write
+      pull-requests: write
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+      - uses: DeterminateSystems/determinate-nix-action@v3
+      - uses: DeterminateSystems/update-flake-lock@main
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Install Nix
-        uses: cachix/install-nix-action@v24
-        with:
-          github_access_token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Configure Git
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-
-      - name: Update flake lockfile
-        run: nix flake update
-
-      - name: Check for changes
-        id: changes
-        run: |
-          if git diff --quiet flake.lock; then
-            echo "changed=false" >> $GITHUB_OUTPUT
-            echo "No changes in flake.lock"
-          else
-            echo "changed=true" >> $GITHUB_OUTPUT
-            echo "Changes detected in flake.lock"
-          fi
-
-      - name: Build flake
-        if: steps.changes.outputs.changed == 'true'
-        run: nix build
-
-      - name: Commit and push changes
-        if: steps.changes.outputs.changed == 'true'
-        run: |
-          git add flake.lock
-          git commit -m "chore: update flake lockfile"
-          git push
+          pr-title: "Update Nix flake inputs"
+          pr-labels: |
+            dependencies
+            automated
