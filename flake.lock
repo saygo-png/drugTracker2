@@ -1,17 +1,43 @@
 {
   "nodes": {
+    "niceHaskell": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "systems": [
+          "systems"
+        ],
+        "treefmt-nix": [
+          "treefmt-nix"
+        ]
+      },
+      "locked": {
+        "lastModified": 1765329880,
+        "narHash": "sha256-ln7vvJ8oT9SyDYdI9/NwW4MwYUDqnHuxuLajDRekl7A=",
+        "owner": "saygo-png",
+        "repo": "nice-nixpkgs-haskell",
+        "rev": "92d51df14b2460a5d43589c699a2031a90788559",
+        "type": "github"
+      },
+      "original": {
+        "owner": "saygo-png",
+        "repo": "nice-nixpkgs-haskell",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1759735786,
-        "narHash": "sha256-a0+h02lyP2KwSNrZz4wLJTu9ikujNsTWIC874Bv7IJ0=",
+        "lastModified": 1765186076,
+        "narHash": "sha256-hM20uyap1a0M9d344I692r+ik4gTMyj60cQWO+hAYP8=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "20c4598c84a671783f741e02bf05cbfaf4907cff",
+        "rev": "addf7cf5f383a3101ecfba091b98d0a1263dc9b8",
         "type": "github"
       },
       "original": {
         "owner": "NixOS",
-        "ref": "nixos-25.05",
+        "ref": "nixos-unstable",
         "repo": "nixpkgs",
         "type": "github"
       }
@@ -34,6 +60,7 @@
     },
     "root": {
       "inputs": {
+        "niceHaskell": "niceHaskell",
         "nixpkgs": "nixpkgs",
         "systems": "systems",
         "treefmt-nix": "treefmt-nix"

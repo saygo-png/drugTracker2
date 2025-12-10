@@ -1,7 +1,15 @@
 {
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
     treefmt-nix.url = "github:numtide/treefmt-nix";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    niceHaskell = {
+      url = "github:saygo-png/nice-nixpkgs-haskell";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        systems.follows = "systems";
+        treefmt-nix.follows = "treefmt-nix";
+      };
+    };
   };
 
   outputs = {
@@ -14,15 +22,22 @@
       import nixpkgs {
         inherit system;
       });
-    eachSystem = f: nixpkgs.lib.genAttrs (import systems) (system: f pkgsFor.${system});
-    treefmtEval = eachSystem (pkgs: inputs.treefmt-nix.lib.evalModule pkgs ./treefmt.nix);
+    eachSystemPkgs = f: nixpkgs.lib.genAttrs (import systems) (system: f pkgsFor.${system});
+    eachSystem = f: nixpkgs.lib.genAttrs (import systems) (system: f system);
+    treefmtEval = eachSystemPkgs (pkgs: inputs.treefmt-nix.lib.evalModule pkgs ./treefmt.nix);
   in {
     homeManagerModules.default = self.homeManagerModules.drugtracker2;
     homeManagerModules.drugtracker2 = import ./home-manager.nix;
 
-    formatter = eachSystem (pkgs: treefmtEval.${pkgs.system}.config.build.wrapper);
-    packages = eachSystem (pkgs: rec {
-      drug = pkgs.callPackage ./package.nix {};
+    formatter = eachSystemPkgs (pkgs: treefmtEval.${pkgs.system}.config.build.wrapper);
+    packages = eachSystem (system: let
+      niceHaskell = inputs.niceHaskell.outputs.niceHaskell.${system};
+    in rec {
+      drug = niceHaskell.mkPackage {
+        flags = niceHaskell.mkFlags {doCheck = true;};
+        packageRoot = ./.;
+        cabalName = "drug2";
+      };
       default = drug;
     });
   };
