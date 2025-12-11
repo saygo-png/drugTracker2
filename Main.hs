@@ -1,3 +1,4 @@
+{-# LANGUAGE TemplateHaskell #-}
 module Main (main) where
 
 import ClassyPrelude
@@ -10,9 +11,10 @@ import Remind
 import Status
 import Take
 import Types
+import Version
 
 parserInfo :: ParserInfo Options
-parserInfo = info (helper <*> parseOptions) (progDesc "Reminds you to take a drug")
+parserInfo = info (helper <*> parseOptions <**> simpleVersioner $(getGitRev)) (progDesc "Reminds you to take a drug")
 
 parseCommand :: Parser Command
 parseCommand =

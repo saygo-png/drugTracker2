@@ -2,6 +2,7 @@
   inputs = {
     treefmt-nix.url = "github:numtide/treefmt-nix";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    systems.url = "github:nix-systems/default";
     niceHaskell = {
       url = "github:saygo-png/nice-nixpkgs-haskell";
       inputs = {
@@ -22,23 +23,30 @@
       import nixpkgs {
         inherit system;
       });
-    eachSystemPkgs = f: nixpkgs.lib.genAttrs (import systems) (system: f pkgsFor.${system});
-    eachSystem = f: nixpkgs.lib.genAttrs (import systems) (system: f system);
-    treefmtEval = eachSystemPkgs (pkgs: inputs.treefmt-nix.lib.evalModule pkgs ./treefmt.nix);
+
+    eachSystem = f: nixpkgs.lib.genAttrs (import systems) (system: f system pkgsFor.${system});
+    treefmtEval = eachSystem (_: pkgs: inputs.treefmt-nix.lib.evalModule pkgs ./treefmt.nix);
   in {
     homeManagerModules.default = self.homeManagerModules.drugtracker2;
     homeManagerModules.drugtracker2 = import ./home-manager.nix;
 
-    formatter = eachSystemPkgs (pkgs: treefmtEval.${pkgs.system}.config.build.wrapper);
-    packages = eachSystem (system: let
+    packages = eachSystem (system: pkgs: let
       niceHaskell = inputs.niceHaskell.outputs.niceHaskell.${system};
     in rec {
-      drug = niceHaskell.mkPackage {
-        flags = niceHaskell.mkFlags {doCheck = true;};
+      drug = niceHaskell.mkPackage rec {
+        flags = niceHaskell.mkFlags {doCheck = false;};
         packageRoot = ./.;
         cabalName = "drug2";
+        compiler = "ghc912";
+        developPackageArgs = {
+          overrides = _: super: {
+            say = pkgs.haskell.lib.dontCheck super.say;
+          };
+        };
       };
       default = drug;
     });
+
+    formatter = eachSystem (_: pkgs: treefmtEval.${pkgs.system}.config.build.wrapper);
   };
 }

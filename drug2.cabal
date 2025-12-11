@@ -37,5 +37,5 @@ executable drug
   import: common-options
   hs-source-dirs: . src src/commands
   other-modules: List, EnableDisable, Take, Remind, Create, Status, Json,
-                 Types, Lib, TemplateLib, Time, ParseConfig, LoadConfig, Table
+                 Types, Lib, TemplateLib, Time, ParseConfig, LoadConfig, Table, Version
   main-is: Main.hs
