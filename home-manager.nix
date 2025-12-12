@@ -1,4 +1,4 @@
-{
+niceHaskell: {
   pkgs,
   lib,
   config,
@@ -63,6 +63,7 @@ in {
     drugConfigured = pkgs.callPackage ./package.nix {
       inherit (cfg) picker;
       inherit jsonConfig;
+      niceHaskell = niceHaskell.outputs.niceHaskell.${pkgs.stdenv.hostPlatform.system};
     };
   in
     lib.mkIf cfg.enable

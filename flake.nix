@@ -16,6 +16,7 @@
   outputs = {
     nixpkgs,
     systems,
+    niceHaskell,
     self,
     ...
   } @ inputs: let
@@ -28,22 +29,10 @@
     treefmtEval = eachSystem (_: pkgs: inputs.treefmt-nix.lib.evalModule pkgs ./treefmt.nix);
   in {
     homeManagerModules.default = self.homeManagerModules.drugtracker2;
-    homeManagerModules.drugtracker2 = import ./home-manager.nix;
+    homeManagerModules.drugtracker2 = (import ./home-manager.nix) niceHaskell;
 
-    packages = eachSystem (system: pkgs: let
-      niceHaskell = inputs.niceHaskell.outputs.niceHaskell.${system};
-    in rec {
-      drug = niceHaskell.mkPackage rec {
-        flags = niceHaskell.mkFlags {doCheck = false;};
-        packageRoot = ./.;
-        cabalName = "drug2";
-        compiler = "ghc912";
-        developPackageArgs = {
-          overrides = _: super: {
-            say = pkgs.haskell.lib.dontCheck super.say;
-          };
-        };
-      };
+    packages = eachSystem (system: pkgs: rec {
+      drug = pkgs.callPackage ./package.nix {niceHaskell = niceHaskell.outputs.niceHaskell.${system};};
       default = drug;
     });
 
