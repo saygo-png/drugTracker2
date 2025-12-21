@@ -36,6 +36,6 @@
       default = drug;
     });
 
-    formatter = eachSystem (_: pkgs: treefmtEval.${pkgs.system}.config.build.wrapper);
+    formatter = eachSystem (system: _: treefmtEval.${system}.config.build.wrapper);
   };
 }
