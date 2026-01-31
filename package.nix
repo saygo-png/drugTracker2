@@ -7,9 +7,14 @@
   ...
 }: let
   hasJsonConfig = jsonConfig != null;
+  binaryName = "drug";
 in
   niceHaskell.mkPackage {
-    flags = niceHaskell.mkFlags {doCheck = false;};
+    flags = niceHaskell.mkFlags {
+      doCheck = false;
+      executableNamesToShellComplete = [binaryName];
+      generateOptparseApplicativeCompletions = true;
+    };
     packageRoot = ./.;
     cabalName = "drug2";
     compiler = "ghc912";
@@ -26,7 +31,7 @@ in
       postInstall =
         (old.postInstall or "")
         + ''
-          wrapProgram $out/bin/drug \
+          wrapProgram $out/bin/${binaryName} \
             --prefix PATH : ${pkgs.lib.makeBinPath [picker pkgs.libnotify]}
         '';
     };
