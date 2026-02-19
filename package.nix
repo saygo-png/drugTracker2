@@ -13,7 +13,6 @@ in
     flags = niceHaskell.mkFlags {
       doCheck = false;
       executableNamesToShellComplete = [binaryName];
-      generateOptparseApplicativeCompletions = true;
     };
     packageRoot = ./.;
     cabalName = "drug2";
