@@ -1,12 +1,6 @@
 :warning-caption: :warning:
 = drugTracker2
 
-== Preface
-
-This program is not ready for daily use — it does not maintain backwards compatibility.
-That will be done once I feel like drugTracker2 has reached a core set of features.
-Breaking changes are tracked in https://github.com/saygo-png/drugTracker2/issues/1.
-
 == About
 The goal of this program is to keep track of pills. +
 I created this for myself, as I have to take medicine daily
@@ -23,11 +17,11 @@ image::misc/screenshot.png[Screenshot of the application]
 
 [WARNING]
 ====
-This program is new and experimental. I'm also inexperienced as a developer.
+I'm inexperienced as a developer.
 A bug in the time handling could exist, leading to wrong
 dates being displayed or reminders fired at the wrong time.
 The information provided by this program should not be trusted by default. Assume it's incorrect and always verify it.
-Some medications require precise timing to be safe. Relying fully on this program is dangerous. Use common sense.
+Some medications require precise timing to be safe. Relying fully on this program is dangerous.
 ====
 
 == Usage
