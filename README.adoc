@@ -74,7 +74,7 @@ drugtracker2 = {
 Add this to your configuration.nix:
 ```nix
 environment.systemPackages = [
-  inputs.drugtracker2.packages.${pkgs.system}.drug
+  inputs.drugtracker2.packages.${pkgs.stdenv.hostPlatform.system}.drug
 ];
 ```
 
