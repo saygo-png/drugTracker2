@@ -9,6 +9,7 @@
   programs.deadnix.enable = true;
   programs.statix.enable = true;
   programs.fourmolu.enable = true;
+  programs.cabal-gild.enable = true;
 
   settings.formatter = {
     fourmolu = {
@@ -21,6 +22,9 @@
 
         "--indent-wheres"
         "true"
+
+        "--haddock-style"
+        "single-line"
       ];
     };
 
