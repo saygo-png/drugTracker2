@@ -1,4 +1,4 @@
-cabal-version: 2.4
+cabal-version: 3.0
 name: drug2
 version: 0
 build-type: Simple
@@ -28,64 +28,31 @@ common common-options
     vector,
     vector-algorithms,
 
-  default-language: GHC2021
+  default-language: GHC2024
   ghc-options:
     -Weverything
-    -Wno-missing-kind-signatures
-    -Wno-safe
-    -Wno-unsafe
-    -Wno-missing-import-lists
     -Wno-all-missed-specialisations
     -Wno-missed-specialisations
-    -Wno-missing-safe-haskell-mode
     -Wno-missing-exported-signatures
+    -Wno-missing-import-lists
+    -Wno-missing-kind-signatures
     -Wno-missing-local-signatures
+    -Wno-missing-safe-haskell-mode
+    -Wno-safe
+    -Wno-unsafe
+    -Wno-unticked-promoted-constructors
     -threaded
     -rtsopts
     -with-rtsopts=-N
 
   default-extensions:
-    BangPatterns
-    BinaryLiterals
-    ConstraintKinds
-    DataKinds
-    DefaultSignatures
-    DeriveDataTypeable
-    DeriveFoldable
-    DeriveFunctor
-    DeriveGeneric
-    DeriveTraversable
-    DerivingStrategies
-    DoAndIfThenElse
     DuplicateRecordFields
-    EmptyDataDecls
-    ExistentialQuantification
-    FlexibleContexts
-    FlexibleInstances
-    FunctionalDependencies
-    GADTs
-    GeneralizedNewtypeDeriving
-    InstanceSigs
-    KindSignatures
-    LambdaCase
-    MultiParamTypeClasses
     MultiWayIf
-    NamedFieldPuns
     NoFieldSelectors
     NoImplicitPrelude
     OverloadedRecordDot
     OverloadedStrings
     PartialTypeSignatures
-    PatternGuards
-    PolyKinds
-    RankNTypes
-    RoleAnnotations
-    ScopedTypeVariables
-    StandaloneDeriving
-    TupleSections
-    TypeFamilies
-    TypeSynonymInstances
-    ViewPatterns
 
 executable drug
   import: common-options

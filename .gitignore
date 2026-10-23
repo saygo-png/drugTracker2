@@ -25,3 +25,4 @@ cabal.project.local~
 config.jsonc
 config.json
 .direnv
+/tags
