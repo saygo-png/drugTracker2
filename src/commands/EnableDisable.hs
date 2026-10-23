@@ -10,8 +10,8 @@ import Lib
 import Path qualified as P
 import System.Console.ANSI
 import System.Exit (exitFailure)
-import Types qualified as DD (DrugDefinition(..))
 import Types
+import Types qualified as DD (DrugDefinition (..))
 
 enable, disable :: IO ()
 enable = mkToggle True "enabled"

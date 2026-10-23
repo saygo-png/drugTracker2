@@ -1,5 +1,4 @@
 packages: .
-
 optimization: 2
 split-sections: True
 executable-stripping: True

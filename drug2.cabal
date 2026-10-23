@@ -1,41 +1,114 @@
-cabal-version:   2.4
-name:            drug2
-version:         0
-build-type:      Simple
-author:          saygo-png
-maintainer:      saygo-png <saygo.mail@proton.me>
-copyright:       2024 saygo-png
-description:     Keep track of when you last took your meds.
-tested-with:     GHC ==9.8.4
+cabal-version: 2.4
+name: drug2
+version: 0
+build-type: Simple
+author: saygo-png
+maintainer: saygo-png <saygo.mail@proton.me>
+copyright: 2024 saygo-png
+description: Keep track of when you last took your meds.
+tested-with: ghc ==9.8.4
 
 common common-options
   build-depends:
+    aeson,
+    ansi-terminal,
     base,
     bytestring,
     cassava,
-    text,
-    vector,
-    optparse-applicative,
-    path-io,
-    typed-process,
-    ansi-terminal,
-    aeson,
-    template-haskell,
-    vector-algorithms,
-    path,
-    time,
-    containers,
     classy-prelude,
-    pretty-relative-time
+    containers,
+    optparse-applicative,
+    path,
+    path-io,
+    pretty-relative-time,
+    template-haskell,
+    text,
+    time,
+    typed-process,
+    vector,
+    vector-algorithms,
 
   default-language: GHC2021
-  ghc-options: -Weverything -Wno-missing-kind-signatures -Wno-safe -Wno-unsafe -Wno-missing-import-lists -Wno-all-missed-specialisations -Wno-missed-specialisations -Wno-missing-safe-haskell-mode -Wno-missing-exported-signatures -Wno-missing-local-signatures
-               -threaded -rtsopts -with-rtsopts=-N
-  default-extensions: NoImplicitPrelude NoFieldSelectors OverloadedRecordDot DuplicateRecordFields BangPatterns BinaryLiterals ConstraintKinds DataKinds DefaultSignatures DeriveDataTypeable DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable DoAndIfThenElse EmptyDataDecls ExistentialQuantification FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NamedFieldPuns OverloadedStrings PartialTypeSignatures PatternGuards PolyKinds RankNTypes ScopedTypeVariables StandaloneDeriving TupleSections TypeFamilies TypeSynonymInstances ViewPatterns DerivingStrategies RoleAnnotations
+  ghc-options:
+    -Weverything
+    -Wno-missing-kind-signatures
+    -Wno-safe
+    -Wno-unsafe
+    -Wno-missing-import-lists
+    -Wno-all-missed-specialisations
+    -Wno-missed-specialisations
+    -Wno-missing-safe-haskell-mode
+    -Wno-missing-exported-signatures
+    -Wno-missing-local-signatures
+    -threaded
+    -rtsopts
+    -with-rtsopts=-N
+
+  default-extensions:
+    BangPatterns
+    BinaryLiterals
+    ConstraintKinds
+    DataKinds
+    DefaultSignatures
+    DeriveDataTypeable
+    DeriveFoldable
+    DeriveFunctor
+    DeriveGeneric
+    DeriveTraversable
+    DerivingStrategies
+    DoAndIfThenElse
+    DuplicateRecordFields
+    EmptyDataDecls
+    ExistentialQuantification
+    FlexibleContexts
+    FlexibleInstances
+    FunctionalDependencies
+    GADTs
+    GeneralizedNewtypeDeriving
+    InstanceSigs
+    KindSignatures
+    LambdaCase
+    MultiParamTypeClasses
+    MultiWayIf
+    NamedFieldPuns
+    NoFieldSelectors
+    NoImplicitPrelude
+    OverloadedRecordDot
+    OverloadedStrings
+    PartialTypeSignatures
+    PatternGuards
+    PolyKinds
+    RankNTypes
+    RoleAnnotations
+    ScopedTypeVariables
+    StandaloneDeriving
+    TupleSections
+    TypeFamilies
+    TypeSynonymInstances
+    ViewPatterns
 
 executable drug
   import: common-options
-  hs-source-dirs: . src src/commands
-  other-modules: List, EnableDisable, Take, Remind, Create, Status, Json,
-                 Types, Lib, TemplateLib, Time, ParseConfig, LoadConfig, Table, Version
+  hs-source-dirs:
+    .
+    src
+    src/commands
+
+  other-modules:
+    Create
+    EnableDisable
+    Json
+    Lib
+    List
+    LoadConfig
+    ParseConfig
+    Remind
+    Status
+    Table
+    Take
+    TemplateLib
+    Time
+    Types
+    Version
+
   main-is: Main.hs
