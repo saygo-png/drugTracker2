@@ -16,9 +16,6 @@ in
     };
     packageRoot = ./.;
     cabalName = "drug2";
-    # developPackageArgs.overrides = _: super: {
-    #   say = pkgs.haskell.lib.dontCheck super.say;
-    # };
     overrideCabalOverride = old: {
       prePatch =
         (old.prePatch or "")

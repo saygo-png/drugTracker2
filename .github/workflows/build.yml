@@ -10,8 +10,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@main
-      - uses: DeterminateSystems/determinate-nix-action@main
-      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install Nix
+        uses: nixbuild/nix-quick-install-action@v35
+
       - name: Build program
         run: nix build --accept-flake-config --print-build-logs
