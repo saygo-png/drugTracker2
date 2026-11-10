@@ -13,11 +13,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1793820107,
-        "narHash": "sha256-BVTB8qhvODsAz3rmzzm5rugDHcwlyv+dmqhcsjR4M0o=",
+        "lastModified": 1794322445,
+        "narHash": "sha256-pmQlOlqD4xAM/qdu3h18m5th1MVdKtpwA6Pr8vaW1fk=",
         "owner": "saygo-png",
         "repo": "nice-nixpkgs-haskell",
-        "rev": "803984353d902c924e194b8907044a72758cb2ed",
+        "rev": "e7e7671b97368e0e8de396ec9841f2d35a9f2c61",
         "type": "github"
       },
       "original": {

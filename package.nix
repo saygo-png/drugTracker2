@@ -9,14 +9,11 @@
   hasJsonConfig = jsonConfig != null;
   binaryName = "drug";
 in
-  niceHaskell.mkPackage {
-    flags = niceHaskell.mkFlags {
-      doCheck = false;
-      executableNamesToShellComplete = [binaryName];
-    };
-    packageRoot = ./.;
-    cabalName = "drug2";
-    overrideCabalOverride = old: {
+  niceHaskell.mkPackageNoIFD {
+    src = ./.;
+    cabal2nix = ./cabal.nix;
+    shellCompletions = [binaryName];
+    overrideCabal = old: {
       prePatch =
         (old.prePatch or "")
         + lib.optionalString hasJsonConfig "cp ${jsonConfig} config.json";

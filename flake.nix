@@ -37,9 +37,10 @@
       hPkgs = pkgs.haskellPackages;
     in {
       default = pkgs.mkShell {
+        inputsFrom = [self.packages.${system}.drug.env];
+        buildInputs = [pkgs.zlib];
         packages = [
           self.formatter.${system}
-          pkgs.zlib
           hPkgs.cabal-install
           hPkgs.ghc
           hPkgs.haskell-language-server
